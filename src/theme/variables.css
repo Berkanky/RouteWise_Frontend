@@ -9,4 +9,20 @@
   --ion-color-light: #ffffff !important;
   --ion-color-step-50: #f8f9fa !important;
   --ion-color-step-100: #f4f5f8 !important;
+
+  --ion-color-routematic-red: #E11F21;
+  --ion-color-routematic-red-rgb: 228,0,43;
+  --ion-color-routematic-red-contrast: #ffffff;
+  --ion-color-routematic-red-contrast-rgb: 255,255,255;
+  --ion-color-routematic-red-shade: #c80026;
+  --ion-color-routematic-red-tint: #e61a40;  
+}
+
+.ion-color-routematic-red {
+  --ion-color-base: var(--ion-color-routematic-red);
+  --ion-color-base-rgb: var(--ion-color-routematic-red-rgb);
+  --ion-color-contrast: var(--ion-color-routematic-red-contrast);
+  --ion-color-contrast-rgb: var(--ion-color-routematic-red-contrast-rgb);
+  --ion-color-shade: var(--ion-color-routematic-red-shade);
+  --ion-color-tint: var(--ion-color-routematic-red-tint);
 }

@@ -1,23 +1,62 @@
 <template>
-  <ion-app>
-    <router-view />
-  </ion-app>
+  <ion-menu content-id="main-content" v-if="!this.IsMenuActive()">
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Menu Content</ion-title>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding">
+        <p>This is the menu content.</p>
+        </ion-content>
+
+    <ion-footer>
+      <ion-toolbar>
+        <ion-button expand="full" fill="clear" color="danger" @click="this.LogoutService()">
+          <ion-icon :icon="logOutOutline" slot="start"></ion-icon>
+          Logout
+        </ion-button>
+      </ion-toolbar>
+    </ion-footer>
+    </ion-menu>
+  <ion-page id="main-content">
+    <ion-header v-if="!this.IsMenuActive()">
+      <ion-toolbar>
+        <ion-buttons slot="start">
+          <ion-menu-button></ion-menu-button>
+        </ion-buttons>
+        <ion-title>Menu</ion-title>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding">
+      <router-view></router-view>
+    </ion-content>
+  </ion-page>
 </template>
 
 <script>
-import {
-  IonApp
-} from '@ionic/vue';
-
+import { IonButtons, IonContent, IonHeader, IonMenu, IonMenuButton, IonPage, IonTitle, IonToolbar, IonFooter, IonButton, IonIcon  } from '@ionic/vue';
+import { logOutOutline } from 'ionicons/icons'; // <<< YENİ: İkonu import et
 import { UseStore } from './stores/store';
+import axios from 'axios';
 export default {
   components: {
-    IonApp,
+    IonButtons,
+    IonContent,
+    IonHeader,
+    IonMenu,
+    IonMenuButton,
+    IonPage,
+    IonTitle,
+    IonToolbar,
+    IonFooter, 
+    IonButton, 
+    IonIcon 
   },
   setup() {
     const store = UseStore();
     return {
-      store
+      store,
+      logOutOutline 
     }
   },
   data: function () {
@@ -27,6 +66,33 @@ export default {
     }
   },
   methods: {
+    IsMenuActive(){
+      var routeName = this.$route.name;
+      var hideMenuList = ["login", "welcome", "register", "setPassword", "verification", "registerComplete"];
+
+      return hideMenuList.some(function(row){ return row === routeName});
+    },
+    LogoutService(){
+      var ServerRoot = this.store.ServerRoot;
+      var EMailAddress = this.store.UserData.EMailAddress;
+      var Token = this.store.Token;
+
+      axios.put(`${ServerRoot}/logout/${EMailAddress}`, {}, {
+        headers:{
+          "Authorization": "Bearer " + Token
+        }
+      })
+      .then(res => {
+        console.log(res);
+        if(res.status === 200) {
+          this.$router.replace({path:'/login'});
+        }
+      })
+      .catch(err => {
+        console.log(err);
+        if(err.status === 504) return this.LogoutService();
+      })
+    },
     IsAuthenticated() {
       var UserData = this.UserData;
 
@@ -49,11 +115,13 @@ export default {
 
       this.socket.onmessage = (event) => {
         console.log('Sunucudan Gelen Data', JSON.parse(event.data));
-
+ 
         var UserData = JSON.parse(event.data).payload;
-        
-        if ('Active' in UserData && UserData["Active"] === false) {
-          console.log("Oturum sonlandırıldı. ", JSON.stringify(UserData["Active"]));
+
+        if(Object.keys(UserData).length){
+          for (var key in UserData) {
+            this.store.UserData[key] = UserData[key];
+          }
         }
       };
 
@@ -86,10 +154,7 @@ export default {
           console.log('Store UserData :  ', newVal);
           this.UserData = newVal;
           if ("Active" in newVal) {
-            if (!newVal["Active"]) {
-              console.log("Lütfen giriş yapınız.");
-              return this.$router.replace({ path: '/welcome' });
-            }
+            if (!newVal["Active"] || !newVal["TwoFAStatus"]) return this.$router.replace({ path: '/welcome' });
           } else {
             return this.$router.replace({ path: '/welcome' });
           }

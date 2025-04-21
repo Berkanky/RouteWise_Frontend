@@ -7,7 +7,7 @@
             </div>
 
             <!-- Başlık -->
-            <h1 class="title">Welcome to Routewise</h1> 
+            <h1 class="title">Welcome to RouteWise</h1> 
             <p class="subtitle">
                 Login and unlock the smarter travel with RouteWise
             </p>
@@ -16,17 +16,17 @@
             <form @submit.prevent="onSubmit" class="form">
                 <ion-item class="input-item" lines="none">
                     <ion-label position="stacked" class="inputLabels">Email Address</ion-label>
-                    <ion-input v-model="this.store.LoginData.EMailAddress" type="email" placeholder="username@example.com" required></ion-input>
+                    <ion-input v-model="this.store.LoginData.EMailAddress" type="email" placeholder="username@example.com" required :disabled="this.store.LoginData.Verified"></ion-input>
                 </ion-item>
 
                 <ion-item class="input-item" lines="none">
                     <ion-label position="stacked" class="inputLabels">Password</ion-label>
-                    <ion-input v-model="this.store.LoginData.Password" type="password" placeholder="min. 6 characters" minlength="6"
+                    <ion-input v-model="this.store.LoginData.Password" type="password" placeholder="Password" minlength="6"
                         required></ion-input>
                 </ion-item>
 
                 <ion-item class="input-item remember-item" lines="none">
-                    <ion-checkbox v-model="this.store.LoginData.IsRemindDeviceActive" slot="start" class="remember-checkbox"></ion-checkbox>
+                    <ion-checkbox color="routematic-red" v-model="this.store.LoginData.IsRemindDeviceActive" slot="start" class="remember-checkbox"></ion-checkbox>
                     <ion-label class="remember-label">Remember this device</ion-label>
                 </ion-item>
 
@@ -215,7 +215,6 @@ ion-input {
 
 .remember-checkbox {
     --size: 20px;
-    --color-checked: #e4002b !important; 
     margin-right: 10px; 
 }
 

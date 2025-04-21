@@ -7,7 +7,7 @@
 
         <div class="logo-section">
           <img src="../Images/Vector.png" alt="Logo" class="logo" />
-          <h2 class="welcome-title">Welcome to Routewise</h2>
+          <h2 class="welcome-title">Welcome to RouteWise</h2>
           <p class="subtitle">Plan smarter journeys, save on every mile with Routewise.</p>
         </div>
   

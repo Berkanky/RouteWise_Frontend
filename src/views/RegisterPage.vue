@@ -7,7 +7,7 @@
             </div>
 
             <!-- Başlık -->
-            <h1 class="title">Welcome to Routewise</h1>
+            <h1 class="title">Welcome to RouteWise</h1>
             <p class="subtitle">
                 Sign up and unlock smarter travel with Routewise.
             </p>
@@ -23,7 +23,7 @@
                 <ion-item class="input-item" lines="none">
                     <ion-label position="stacked" class="inputLabels">Password</ion-label>
                     <ion-input v-model="this.store.RegisterData.Password" type="password"
-                        placeholder="min. 6 characters" minlength="6" required></ion-input>
+                        placeholder="Password" minlength="6" required></ion-input>
                 </ion-item>
 
                 <ion-button v-on:click="RegisterEmailVerificationSend" type="submit" expand="block"

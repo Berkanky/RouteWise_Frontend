@@ -1,14 +1,5 @@
 <template>
     <ion-page class="otp-page-target">
-        <ion-header class="ion-no-border">
-            <ion-toolbar>
-                <ion-buttons slot="start">
-                    <ion-button class="back-button-custom" shape="round" @click="this.goBack()">
-                        <ion-icon :icon="ioniconsChevronBackOutline" color="light"></ion-icon>
-                    </ion-button>
-                </ion-buttons>
-            </ion-toolbar>
-        </ion-header>
 
         <ion-content :fullscreen="true" class="ion-padding">
             <div class="text-section-target">
@@ -16,9 +7,32 @@
                 <p class="subtitle-target">We’ve sent a 6‑digit code to your email.</p>
             </div>
 
-            <ion-item class="otp-item-target" lines="none">
-                <ion-input v-model="this.VerificationId" type="tel" inputmode="numeric" maxlength="6" placeholder="Enter 6‑digit code"
-                    class="otp-input-target" />
+            <ion-item class="input-item" lines="none">
+                <ion-input 
+                    v-if="this.Type == 'Login'"
+                    v-model="this.store.LoginData.EMailAddress" 
+                    type="email" 
+                    placeholder="username@example.com"
+                    disabled
+                    required
+                    class="otp-input-target"
+                    >
+                </ion-input>
+                <ion-input 
+                    v-if="this.Type == 'Register'"
+                    v-model="this.store.RegisterData.EMailAddress" 
+                    type="email" 
+                    placeholder="username@example.com"
+                    disabled
+                    required
+                    class="otp-input-target"
+                    >
+                </ion-input>
+            </ion-item>
+
+            <ion-item class="otp-item-target" lines="none" style="margin-top:16px;">
+                <ion-input v-model="this.VerificationId" type="tel" inputmode="numeric" maxlength="6"
+                    placeholder="Enter 6‑digit code" class="otp-input-target" />
             </ion-item>
 
             <div class="buttons-row-target">
@@ -26,7 +40,8 @@
                     Resend
                 </ion-button>
 
-                <ion-button expand="block" class="next-btn-target" :disabled="!this.isValid()" @click="this.ConfirmVerificationId()">
+                <ion-button expand="block" class="next-btn-target" :disabled="!this.isValid()"
+                    @click="this.ConfirmVerificationId()">
                     Next
                 </ion-button>
             </div>
@@ -38,54 +53,46 @@
 import { defineComponent } from 'vue';
 import {
     IonPage,
-    IonHeader,
-    IonToolbar,
-    IonButtons,
     IonButton,
     IonContent,
     IonItem,
     IonInput,
-    IonIcon,
     useIonRouter
 } from '@ionic/vue';
 import { chevronBackOutline } from 'ionicons/icons';
 import axios from 'axios';
-import {UseStore} from '../stores/store';
+import { UseStore } from '../stores/store';
 export default defineComponent({
     name: 'OtpPageTarget',
     components: {
         IonPage,
-        IonHeader,
-        IonToolbar,
-        IonButtons,
         IonButton,
         IonContent,
         IonItem,
-        IonInput,
-        IonIcon,
+        IonInput
     },
     setup() {
         const store = UseStore();
         const ionRouter = useIonRouter();
         return {
-            ionRouter, 
+            ionRouter,
             ioniconsChevronBackOutline: chevronBackOutline,
             store
         };
     },
     data() {
         return {
-            VerificationId: '', 
-            EMailAddress:'',
-            Type:''
+            VerificationId: '',
+            EMailAddress: '',
+            Type: ''
         };
     },
     computed: {
     },
     methods: {
-        isValid(){
+        isValid() {
             var codeStr = String(this.VerificationId || '');
-            console.log('isValid : ' ,/^\d{6}$/.test(codeStr));
+            console.log('isValid : ', /^\d{6}$/.test(codeStr));
             return /^\d{6}$/.test(codeStr);
         },
         ResendVerificationId() {
@@ -96,27 +103,27 @@ export default defineComponent({
                 var ServerRoot = this.store.ServerRoot;
                 var EMailAddress = this.EMailAddress;
                 var Type = this.Type;
-                if( Type  === 'Register'){
-                    axios.post(`${ServerRoot}/register/email/verification/confirm/${EMailAddress}`, { VerificationId: this.VerificationId})
-                    .then(res => {
-                        console.log(res);
-                        if(res.status === 200) this.$router.push({path:'/register/complete'});
-                    })
-                    .catch(err => {
-                        console.log(err);
-                        if(err.status === 504) return this.ConfirmVerificationId();
-                    })
+                if (Type === 'Register') {
+                    axios.post(`${ServerRoot}/register/email/verification/confirm/${EMailAddress}`, { VerificationId: this.VerificationId })
+                        .then(res => {
+                            console.log(res);
+                            if (res.status === 200) this.$router.push({ path: '/register/complete' });
+                        })
+                        .catch(err => {
+                            console.log(err);
+                            if (err.status === 504) return this.ConfirmVerificationId();
+                        })
                 }
-                if( Type === 'Login'){
-                    axios.post(`${ServerRoot}/login/email/verification/confirm/${EMailAddress}`, { VerificationId: this.VerificationId})
-                    .then(res => {
-                        console.log(res);
-                        if(res.status === 200) this.store.LoginData.Verified = true, this.$router.push({path:'/login'});
-                    })
-                    .catch(err => {
-                        console.log(err);
-                        if(err.status === 504) return this.ConfirmVerificationId();
-                    })
+                if (Type === 'Login') {
+                    axios.post(`${ServerRoot}/login/email/verification/confirm/${EMailAddress}`, { VerificationId: this.VerificationId })
+                        .then(res => {
+                            console.log(res);
+                            if (res.status === 200) this.store.LoginData.Verified = true, this.$router.push({ path: '/login' });
+                        })
+                        .catch(err => {
+                            console.log(err);
+                            if (err.status === 504) return this.ConfirmVerificationId();
+                        })
                 }
             }
         },
@@ -125,7 +132,7 @@ export default defineComponent({
             else this.ionRouter.replace('/login');
         },
     },
-    created(){
+    created() {
         var { EMailAddress, Type } = this.$route.params;
         this.EMailAddress = EMailAddress;
         this.Type = Type;

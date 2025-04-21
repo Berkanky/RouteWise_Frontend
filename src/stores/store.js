@@ -12,13 +12,16 @@ export const UseStore = defineStore("UseStore", {
   }),
   actions: {
     ResetPiniaStore() {
+      console.log("Pinia Store Resetlendi. ");
+      console.log( 'Resetleme Öncesi : ', JSON.stringify(this.UserData));
       this.$reset();
+      console.log('Resetleme Sonrası : ', JSON.stringify(this.UserData));
     },
     EMailAddressRegex(EMailAddress) {
       var EMailAddressRegex =
         /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/; //RFC5322
       return EMailAddressRegex.test(EMailAddress);
-    },
+    }
   },
   persist: {
     storage: sessionStorage,

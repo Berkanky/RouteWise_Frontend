@@ -85,7 +85,9 @@ export default {
       .then(res => {
         console.log(res);
         if(res.status === 200) {
+          console.log("Çıkış Yapılıyor. ");
           this.$router.replace({path:'/login'});
+          this.store.ResetPiniaStore();
         }
       })
       .catch(err => {

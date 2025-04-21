@@ -96,7 +96,7 @@ export default defineComponent({
             return /^\d{6}$/.test(codeStr);
         },
         ResendVerificationId() {
-            console.log('Resend code clicked');
+            //
         },
         ConfirmVerificationId() {
             if (this.isValid) {

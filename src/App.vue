@@ -1,114 +1,106 @@
 <template>
   <ion-app>
-    <ion-split-pane content-id="main-content">
-      <ion-menu content-id="main-content" type="overlay">
-        <ion-content>
-          <ion-list id="inbox-list">
-            <ion-list-header>Inbox</ion-list-header>
-            <ion-note>hi@ionicframework.com</ion-note>
-
-            <ion-menu-toggle :auto-hide="false" v-for="(p, i) in appPages" :key="i">
-              <ion-item @click="selectedIndex = i" router-direction="root" :router-link="p.url" lines="none" :detail="false" class="hydrated" :class="{ selected: selectedIndex === i }">
-                <ion-icon aria-hidden="true" slot="start" :ios="p.iosIcon" :md="p.mdIcon"></ion-icon>
-                <ion-label>{{ p.title }}</ion-label>
-              </ion-item>
-            </ion-menu-toggle>
-          </ion-list>
-
-          <ion-list id="labels-list">
-            <ion-list-header>Labels</ion-list-header>
-
-            <ion-item v-for="(label, index) in labels" lines="none" :key="index">
-              <ion-icon aria-hidden="true" slot="start" :ios="bookmarkOutline" :md="bookmarkSharp"></ion-icon>
-              <ion-label>{{ label }}</ion-label>
-            </ion-item>
-          </ion-list>
-        </ion-content>
-      </ion-menu>
-      <ion-router-outlet id="main-content"></ion-router-outlet>
-    </ion-split-pane>
+    <router-view />
   </ion-app>
 </template>
 
-<script setup lang="ts">
+<script>
 import {
-  IonApp,
-  IonContent,
-  IonIcon,
-  IonItem,
-  IonLabel,
-  IonList,
-  IonListHeader,
-  IonMenu,
-  IonMenuToggle,
-  IonNote,
-  IonRouterOutlet,
-  IonSplitPane,
+  IonApp
 } from '@ionic/vue';
-import { ref } from 'vue';
-import {
-  archiveOutline,
-  archiveSharp,
-  bookmarkOutline,
-  bookmarkSharp,
-  heartOutline,
-  heartSharp,
-  mailOutline,
-  mailSharp,
-  paperPlaneOutline,
-  paperPlaneSharp,
-  trashOutline,
-  trashSharp,
-  warningOutline,
-  warningSharp,
-} from 'ionicons/icons';
 
-const selectedIndex = ref(0);
-const appPages = [
-  {
-    title: 'Inbox',
-    url: '/folder/Inbox',
-    iosIcon: mailOutline,
-    mdIcon: mailSharp,
+import { UseStore } from './stores/store';
+export default {
+  components: {
+    IonApp,
   },
-  {
-    title: 'Outbox',
-    url: '/folder/Outbox',
-    iosIcon: paperPlaneOutline,
-    mdIcon: paperPlaneSharp,
+  setup() {
+    const store = UseStore();
+    return {
+      store
+    }
   },
-  {
-    title: 'Favorites',
-    url: '/folder/Favorites',
-    iosIcon: heartOutline,
-    mdIcon: heartSharp,
+  data: function () {
+    return {
+      socket: '',
+      UserData: {}
+    }
   },
-  {
-    title: 'Archived',
-    url: '/folder/Archived',
-    iosIcon: archiveOutline,
-    mdIcon: archiveSharp,
-  },
-  {
-    title: 'Trash',
-    url: '/folder/Trash',
-    iosIcon: trashOutline,
-    mdIcon: trashSharp,
-  },
-  {
-    title: 'Spam',
-    url: '/folder/Spam',
-    iosIcon: warningOutline,
-    mdIcon: warningSharp,
-  },
-];
-const labels = ['Family', 'Friends', 'Notes', 'Work', 'Travel', 'Reminders'];
+  methods: {
+    IsAuthenticated() {
+      var UserData = this.UserData;
 
-const path = window.location.pathname.split('folder/')[1];
-if (path !== undefined) {
-  selectedIndex.value = appPages.findIndex((page) => page.title.toLowerCase() === path.toLowerCase());
+      return 'Active' in UserData && UserData["Active"] ? true : false
+    },
+    WebSocketForWatchAuth() {
+      //var localWS = 'ws://localhost:3000';
+      var RailwayWS = 'wss://routewisebackend-production.up.railway.app';
+      this.socket = new WebSocket(RailwayWS);
+
+      var dataSendToServer = {
+        UserData: {
+          _id: this.store.UserData._id
+        },
+      };
+
+      this.socket.onopen = () => {
+        this.socket.send(JSON.stringify(dataSendToServer));
+      };
+
+      this.socket.onmessage = (event) => {
+        console.log('Sunucudan Gelen Data', JSON.parse(event.data));
+
+        var UserData = JSON.parse(event.data).payload;
+        
+        if ('Active' in UserData && UserData["Active"] === false) {
+          console.log("Oturum sonlandırıldı. ", JSON.stringify(UserData["Active"]));
+        }
+      };
+
+      this.socket.onclose = () => {
+        console.log('WebSocket bağlantısı kapandı!');
+        this.WebSocketForWatchAuth();
+      };
+
+      this.socket.onerror = (error) => {
+        console.log("WebSocket hatası: " + error.message);
+      };
+    },
+  },
+  created() {
+    console.log("App başlatıldı. ");
+  },
+  mounted() {
+    this.WebSocketForWatchAuth();
+  },
+  watch: {
+    'store.Token': {
+      handler(newVal) {
+        if (newVal) console.log("Token : ", newVal);
+      },
+      immediate: true, deep: true
+    },
+    'store.UserData': {
+      handler(newVal) {
+        if (newVal) {
+          console.log('Store UserData :  ', newVal);
+          this.UserData = newVal;
+          if ("Active" in newVal) {
+            if (!newVal["Active"]) {
+              console.log("Lütfen giriş yapınız.");
+              return this.$router.replace({ path: '/welcome' });
+            }
+          } else {
+            return this.$router.replace({ path: '/welcome' });
+          }
+        }
+      },
+      immediate: true, deep: true
+    }
+  }
 }
 </script>
+
 
 <style scoped>
 ion-menu ion-content {

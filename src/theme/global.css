@@ -1,0 +1,5 @@
+ion-header,
+ion-toolbar {
+  padding-top: env(safe-area-inset-top);
+  height: calc(env(safe-area-inset-top) + 56px);
+}

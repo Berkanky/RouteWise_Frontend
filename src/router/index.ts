@@ -3,12 +3,48 @@ import { RouteRecordRaw } from 'vue-router';
 
 const routes: Array<RouteRecordRaw> = [
   {
-    path: '',
-    redirect: '/folder/Inbox'
+    path: '/',
+    redirect: '/Home'
   },
   {
-    path: '/folder/:id',
-    component: () => import ('../views/FolderPage.vue')
+    path: '/home',
+    name: 'home',
+    component: () => import ('../views/HomePage.vue')
+  },
+  {
+    path: '/profile',
+    name: 'profile',
+    component: () => import ('../views/ProfilePage.vue')
+  },
+  {
+    path: '/login',
+    name: 'login',
+    component: () => import ('../views/LoginPage.vue')
+  },
+  {
+    path: '/register',
+    name: 'register',
+    component: () => import ('../views/RegisterPage.vue')
+  },
+  {
+    path: '/set/password',
+    name: 'setPassword',
+    component: () => import ('../views/SetPasswordPage.vue')
+  },
+  {
+    path: '/welcome',
+    name: 'welcome',
+    component: () => import ('../views/WelcomePage.vue')
+  },
+  {
+    path: '/verification/:EMailAddress/:Type',
+    name: 'verification',
+    component: () => import ('../views/VerificationPage.vue')
+  },
+  {
+    path: '/register/complete',
+    name: 'registerComplete',
+    component: () => import ('../views/RegisterCompletePage.vue')
   }
 ]
 

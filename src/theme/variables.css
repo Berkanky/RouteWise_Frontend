@@ -1,2 +1,12 @@
-/* For information on how to create your own theme, please see:
-http://ionicframework.com/docs/theming/ */
+/* ******** Global olarak LIGHT tema ******** */
+:root {
+  /* Saf beyaz arka plan */
+  --ion-background-color: #ffffff !important;
+  /* Saf siyah metin */
+  --ion-text-color: #000000 !important;
+
+  /* Eğer grid / step renkleri de koyuysa bunları da override et */
+  --ion-color-light: #ffffff !important;
+  --ion-color-step-50: #f8f9fa !important;
+  --ion-color-step-100: #f4f5f8 !important;
+}

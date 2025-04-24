@@ -1,154 +1,219 @@
 <template>
-    <ion-page class="login-page">
-      <ion-content fullscreen color="light">
-        <div class="map-container">
-          <img src="../Images/RouteWiseMap.png" alt="Map Background" class="map-bg" />
+  <ion-page>
+    <ion-content fullscreen color="light" class="welcome-content">
+
+      <div class="logo-section ion-padding-top ion-text-center">
+        <img src="../Images/Vector.png" alt="Logo" class="logo" />
+        <h1 class="title">RouteWise</h1>
+        <p class="subtitle">Plan smarter journeys, save on every mile with RouteWise.</p>
+      </div>
+
+      <div class="map-container">
+        <img src="../Images/RouteWiseMapV2.png" alt="Map Background" class="map-bg" />
         </div>
 
-        <div class="logo-section">
-          <img src="../Images/Vector.png" alt="Logo" class="logo" />
-          <h2 class="welcome-title">Welcome to RouteWise</h2>
-          <p class="subtitle">Plan smarter journeys, save on every mile with Routewise.</p>
-        </div>
-  
-        <div class="action-section">
-          <ion-button expand="block" class="get-started" v-on:click="goRegisterPage()">Get Started</ion-button>
-          <p class="login-link">
-            Already have an account? <router-link to="/login" v-on:click="GoLoginPage()">Login</router-link>
-          </p>
-        </div>
-      </ion-content>
-    </ion-page>
-  </template>
+      <div class="action-section ion-padding">
+        <ion-button expand="block" class="get-started" @click="goRegisterPage()">Get Started</ion-button>
+        <p class="login-link ion-text-center">
+          Already have an account? <router-link to="/login" @click="GoLoginPage()">Login</router-link>
+        </p>
+      </div>
+
+    </ion-content>
+  </ion-page>
+</template>
 
 <script>
 import {
+  IonPage,
+  IonContent,
+  IonButton
+} from '@ionic/vue';
+import { Device } from '@capacitor/device';
+import { UseStore } from '../stores/store';
+import axios from 'axios';
+export default {
+  components: {
     IonPage,
     IonContent,
     IonButton
-} from '@ionic/vue';
-import { UseStore } from '../stores/store';
-export default {
-    components: {
-        IonPage,
-        IonContent,
-        IonButton
-    },
-    setup() {
-        const store = UseStore();
-        return {
-            store
-        }
-    },
-    data: function () {
-        return {
-
-        }
-    },
-    created(){
-      this.store.ResetPiniaStore();
-    },
-    methods: {
-        GoLoginPage(){
-            this.$router.push({path:'/login'});
-        },
-        goRegisterPage(){
-          this.$router.push({path:'/Register'});
-        }
+  },
+  setup() {
+    const store = UseStore();
+    return {
+      store
     }
+  },
+  data:function(){
+    return{
+      //
+    }
+  },
+  created(){
+    //this.store.ResetPiniaStore();
+  },
+  mounted(){
+    if(!this.store.DeviceId && this.store.AppStarted) this.GetDeviceId();
+  },
+  methods: {
+    GoLoginPage(){
+      this.$router.push({path:'/login'});
+    },
+    goRegisterPage(){
+      this.$router.push({path:'/Register'});
+    },
+    async GetDeviceId(){
+      const idResult = await Device.getId();
+      var DeviceId = idResult.identifier;
+      this.store.DeviceId = DeviceId;
+
+      var ServerRoot = this.store.ServerRoot;
+      
+      axios.get(`${ServerRoot}/auto/login/devices/${DeviceId}`)
+        .then(res => {
+          console.log(res);
+          if( res.status === 200) {
+            this.store.UserData = res.data.Auth;
+            this.store.Token = res.data.Token;
+            this.$router.push({path:'/home'});
+          }
+        })
+        .catch(err => {
+          console.log(err);
+          if(err.status === 504) this.GetDeviceId();
+        })
+    }
+  },
+
 }
 </script>
 
 <style scoped>
-.login-page {
-  --background: #ffffff !important;
-  --color: #000000 !important;
+ion-content::part(scroll) {
+  overflow: hidden; 
+}
+.welcome-content {
+  --background: #ffffff;
+  --padding-bottom: 150px;
+}
+
+.logo-section {
+  padding-top: 8vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+  background: #ffffff;
+}
+
+.logo {
+  width: 100px;
+  height: auto;
+  margin-bottom: 16px;
+}
+
+.title {
+  margin: 0;
+  margin-bottom: 12px;
+  font-size: 36px;
+  font-weight: 700;
+  color: #000000;
+}
+
+.subtitle {
+  margin: 0 40px;
+  margin-bottom: 3vh;
+  font-size: 15px;
+  color: #6c757d;
+  line-height: 1.4;
+  max-width: 300px;
 }
 
 .map-container {
   position: relative;
   width: 100%;
-  height: 45vh;
   overflow: hidden;
+  line-height: 0;
+  margin-top: -5vh;
+  z-index: 1;
 }
 
 .map-bg {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  display: block;
+}
+
+.map-container::before {
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: 40%;
+  background: linear-gradient(
+    to bottom,
+    #ffffff 30%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  pointer-events: none;
+  z-index: 2;
 }
 
 .map-container::after {
   content: "";
   position: absolute;
   bottom: 0;
-  left:   0;
-  width:  100%;
-  height: 40%; /* geçiş yüksekliği, yüzdeyle ayarla */
+  left: 0;
+  width: 100%;
+  height: 40%;
   background: linear-gradient(
     to top,
-    #ffffff 0%,
-    rgba(255,255,255,0) 100%
+    #ffffff 30%,
+    rgba(255, 255, 255, 0) 100%
   );
   pointer-events: none;
-}
-
-.logo-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.logo {
-  width: 80px;
-  height: auto;
-}
-
-.title {
-  margin: 16px 0 8px;
-  font-size: 24px;
-  font-weight: bold;
-  color: #000000;
-}
-
-.subtitle {
-  margin: 0 32px;
-  margin-top:25px;
-  font-size: 14px;
-  text-align: center;
-  color: #666666;
+  z-index: 2;
 }
 
 .action-section {
   position: absolute;
-  bottom: 32px;
+  bottom: 0;
+  left: 0;
+  right: 0;
   width: 100%;
-  padding: 0 16px;
+  padding: 20px 25px 40px 25px;
+  box-sizing: border-box;
+  z-index: 3;
+  background: transparent;
 }
 
 .get-started {
   --background: #e4002b;
-  --border-radius: 24px;
-  --padding-top: 12px;
-  --padding-bottom: 12px;
+  --background-hover: #c00024;
+  --background-activated: #a0001d;
+  --border-radius: 30px;
+  --padding-top: 16px;
+  --padding-bottom: 16px;
   font-size: 16px;
-  font-weight: 500;
-  color:#fff;
+  font-weight: 600;
+  color: #ffffff;
+  text-transform: none;
+  height: 55px;
+  margin: 0;
 }
 
 .login-link {
-  text-align: center;
-  margin-top: 12px;
+  margin-top: 20px;
   font-size: 14px;
   color: #888888;
 }
 
 .login-link a {
   color: #e4002b;
-  font-weight: 500;
+  font-weight: 700;
   text-decoration: none;
 }
 </style>

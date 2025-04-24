@@ -1,6 +1,8 @@
 <template>
   <div>
     home page
+
+    {{ JSON.stringify(this.store.UserData) }}
   </div>
 </template>
 

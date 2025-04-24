@@ -32,7 +32,7 @@
 
                 <ion-button 
                     v-if="!this.store.LoginData.Verified"
-                    v-on:click="this.ContinueEmailVerificationStep()" type="submit" expand="block" class="continue-button" :disabled="!isValid()">
+                    v-on:click="this.store.LoginEmailVerificationSend()" type="submit" expand="block" class="continue-button" :disabled="!isValid()">
                     Continue
                 </ion-button>
                 <ion-button 
@@ -71,29 +71,14 @@ export default {
 
         }
     },
+    created(){
+        if(!this.store.LoginData.Verified) this.store.OnboardingStep = 1;
+    },
     methods: {
         isValid(){
             var EMailAddress = this.store.LoginData?.EMailAddress;
             var Password = this.store.LoginData.Password;
             return this.store.EMailAddressRegex(EMailAddress) && Password ? true : false
-        },
-        async ContinueEmailVerificationStep(){
-            ///login/email/verification/:EMailAddress
-
-            var ServerRoot = this.store.ServerRoot;
-            var EMailAddress = this.store.LoginData.EMailAddress;
-            var Password = this.store.LoginData.Password;
-            var Type = 'Login';
-
-            axios.post(`${ServerRoot}/login/email/verification/${EMailAddress}`, {Password: Password})
-                .then(res => {
-                    console.log(res);
-                    if(res.status === 200) this.$router.push({path:'/verification/' + this.store.LoginData.EMailAddress + '/' + Type});
-                })
-                .catch(err => {
-                    console.log(err);
-                    if(err.status === 504) this.ContinueEmailVerificationStep();
-                })
         },
         async LoginService(){
             await this.GetDeviceDetails();
@@ -113,7 +98,7 @@ export default {
                 })
                 .catch(err => {
                     console.log(err);
-                    if(err.status === 504) this.ContinueEmailVerificationStep();
+                    if(err.status === 504) this.LoginService();
                 })
         },
         async GetDeviceDetails() {
@@ -141,7 +126,14 @@ export default {
     watch:{
         'store.LoginData':{
             handler(newVal){
-                if(newVal) console.log("Store LoginData NewVal : ", JSON.stringify(newVal));
+                
+                var Type = 'Login';
+
+                if( newVal && 'VerifySended' in newVal && newVal['VerifySended']) {
+                    this.$router.push({path:"/verification/" + this.store.LoginData.EMailAddress + "/" + Type });
+                }
+
+                if( newVal && 'Verified' in newVal && newVal['Verified']) this.store.OnboardingStep = 3;
             },
             immediate:true, deep:true
         }

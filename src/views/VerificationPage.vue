@@ -1,32 +1,23 @@
 <template>
     <ion-page class="otp-page-target">
-
         <ion-content :fullscreen="true" class="ion-padding">
+            <div class="logo-wrapper">
+                <img :src="ClockIcon" alt="Routewise Logo" class="logo" />
+                <p class="subtitle-target">The verification code will expire in:</p>
+                <TimerPill :VerifySendedCount="this.VerifySendedCount" />
+
+            </div>
             <div class="text-section-target">
                 <h1 class="title-target">Enter the Code</h1>
                 <p class="subtitle-target">We’ve sent a 6‑digit code to your email.</p>
             </div>
 
             <ion-item class="input-item" lines="none">
-                <ion-input 
-                    v-if="this.Type == 'Login'"
-                    v-model="this.store.LoginData.EMailAddress" 
-                    type="email" 
-                    placeholder="username@example.com"
-                    disabled
-                    required
-                    class="otp-input-target"
-                    >
+                <ion-input v-if="this.Type == 'Login'" v-model="this.store.LoginData.EMailAddress" type="email"
+                    placeholder="username@example.com" disabled required class="otp-input-target">
                 </ion-input>
-                <ion-input 
-                    v-if="this.Type == 'Register'"
-                    v-model="this.store.RegisterData.EMailAddress" 
-                    type="email" 
-                    placeholder="username@example.com"
-                    disabled
-                    required
-                    class="otp-input-target"
-                    >
+                <ion-input v-if="this.Type == 'Register'" v-model="this.store.RegisterData.EMailAddress" type="email"
+                    placeholder="username@example.com" disabled required class="otp-input-target">
                 </ion-input>
             </ion-item>
 
@@ -50,6 +41,8 @@
 </template>
 
 <script>
+import TimerPill from '@/components/TimerPill.vue';
+import ClockIcon from '../Images/ClockIcon.png';
 import { defineComponent } from 'vue';
 import {
     IonPage,
@@ -57,7 +50,10 @@ import {
     IonContent,
     IonItem,
     IonInput,
-    useIonRouter
+    useIonRouter,
+    IonHeader,
+    IonToolbar,
+    IonTitle
 } from '@ionic/vue';
 import { chevronBackOutline } from 'ionicons/icons';
 import axios from 'axios';
@@ -69,7 +65,11 @@ export default defineComponent({
         IonButton,
         IonContent,
         IonItem,
-        IonInput
+        IonInput,
+        TimerPill,
+        IonHeader,
+        IonToolbar,
+        IonTitle
     },
     setup() {
         const store = UseStore();
@@ -77,17 +77,18 @@ export default defineComponent({
         return {
             ionRouter,
             ioniconsChevronBackOutline: chevronBackOutline,
-            store
+            store,
+            ClockIcon
         };
     },
     data() {
         return {
             VerificationId: '',
             EMailAddress: '',
-            Type: ''
+            Type: '',
+            VerifySended: false,
+            VerifySendedCount: 0
         };
-    },
-    computed: {
     },
     methods: {
         isValid() {
@@ -96,7 +97,10 @@ export default defineComponent({
             return /^\d{6}$/.test(codeStr);
         },
         ResendVerificationId() {
-            //
+            var Type = this.Type;
+
+            if (Type === 'Login') return this.store.LoginEmailVerificationSend();
+            if (Type === 'Register') return this.store.RegisterEmailVerificationSend();
         },
         ConfirmVerificationId() {
             if (this.isValid) {
@@ -118,7 +122,11 @@ export default defineComponent({
                     axios.post(`${ServerRoot}/login/email/verification/confirm/${EMailAddress}`, { VerificationId: this.VerificationId })
                         .then(res => {
                             console.log(res);
-                            if (res.status === 200) this.store.LoginData.Verified = true, this.$router.push({ path: '/login' });
+                            if (res.status === 200) {
+                                this.store.LoginData.Verified = true;
+                                this.store.LoginData.VerifySended = false;
+                                this.$router.push({ path: '/login' });
+                            }
                         })
                         .catch(err => {
                             console.log(err);
@@ -136,13 +144,43 @@ export default defineComponent({
         var { EMailAddress, Type } = this.$route.params;
         this.EMailAddress = EMailAddress;
         this.Type = Type;
-        console.log("Verification Email : ", this.EMailAddress);
-        console.log("Verification Type : ", this.Type);
+
+        this.store.OnboardingStep = 2;
+    },
+    watch: {
+        'store.RegisterData': {
+            handler(newVal) {
+                if (newVal && 'VerifySended' in newVal && newVal["VerifySended"]) {
+                    this.VerifySended = true;
+                    this.VerifySendedCount = this.VerifySendedCount + 1;
+                }
+            },
+            immediate: true, deep: true
+        },
+        'store.LoginData': {
+            handler(newVal) {
+                if (newVal && 'VerifySended' in newVal && newVal["VerifySended"]) {
+                    this.VerifySended = true;
+                    this.VerifySendedCount = this.VerifySendedCount + 1;
+                }
+            },
+            immediate: true, deep: true
+        }
     }
 });
 </script>
 
 <style scoped>
+.logo-wrapper {
+    text-align: center;
+    margin-top: 60px;
+}
+
+.logo {
+    width: 100px;
+    height: auto;
+}
+
 .otp-page-target {
     --background: #ffffff;
 }

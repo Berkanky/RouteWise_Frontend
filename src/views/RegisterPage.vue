@@ -20,13 +20,7 @@
                         placeholder="username@example.com" required></ion-input>
                 </ion-item>
 
-                <ion-item class="input-item" lines="none">
-                    <ion-label position="stacked" class="inputLabels">Password</ion-label>
-                    <ion-input v-model="this.store.RegisterData.Password" type="password"
-                        placeholder="Password" minlength="6" required></ion-input>
-                </ion-item>
-
-                <ion-button v-on:click="RegisterEmailVerificationSend" type="submit" expand="block"
+                <ion-button v-on:click="this.store.RegisterEmailVerificationSend()" type="submit" expand="block"
                     class="continue-button" :disabled="!isValid()">
                     Continue
                 </ion-button>
@@ -38,7 +32,6 @@
 <script>
 import { UseStore } from '../stores/store';
 import { IonPage, IonContent, IonItem, IonLabel, IonInput, IonButton } from '@ionic/vue';
-import axios from 'axios';
 export default {
     components: {
         IonPage,
@@ -56,29 +49,29 @@ export default {
     },
     data: function () {
         return {
-
+            //
         }
+    },
+    created(){
+        this.store.OnboardingStep = 1;
     },
     methods: {
         isValid() {
             var EMailAddress = this.store.RegisterData?.EMailAddress;
-            var Password = this.store.RegisterData.Password;
-            return this.store.EMailAddressRegex(EMailAddress) && Password ? true : false
-        },
-        async RegisterEmailVerificationSend() {
-            var ServerRoot = this.store.ServerRoot;
-            var EMailAddress = this.store.RegisterData.EMailAddress;
-            var Type = 'Register';
-
-            axios.post(`${ServerRoot}/register/email/verification/${EMailAddress}`)
-                .then(res => {
-                    console.log(res);
-                    if (res.status === 200) this.$router.push({ path: '/verification/' + this.store.RegisterData.EMailAddress + '/' + Type });
-                })
-                .catch(err => {
-                    console.log(err);
-                    if (err.status === 504) return this.RegisterEmailVerificationSend();
-                })
+            return this.store.EMailAddressRegex(EMailAddress) ? true : false
+        }   
+    },
+    watch:{
+        'store.RegisterData':{
+            handler(newVal){
+                if(newVal) {
+                    var Type = 'Register';
+                    if( 'VerifySended' in newVal && newVal['VerifySended']){
+                        this.$router.push({ path: '/verification/' + this.store.RegisterData.EMailAddress + '/' + Type });
+                    }
+                }
+            },
+            immediate:true, deep:true
         }
     }
 }

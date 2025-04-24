@@ -1,6 +1,6 @@
 import { createApp } from 'vue';
 import { Capacitor } from '@capacitor/core';
-import { StatusBar, Style } from '@capacitor/status-bar';
+//import { StatusBar, Style } from '@capacitor/status-bar';
 import { createPinia } from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 import { IonicVue } from '@ionic/vue';
@@ -25,7 +25,9 @@ import './theme/global.css'; // safe‑area insets burada
 
 /* StatusBar yalnızca native’da çalışsın */
 if (Capacitor.getPlatform() !== 'web') {
-  StatusBar.setOverlaysWebView({ overlay: true });
+  /* StatusBar.setOverlaysWebView({ overlay: true });
+  StatusBar.setBackgroundColor({ color: '#ffffff' });
+  StatusBar.setStyle({ style: Style.Dark }); */
 }
 
 const pinia = createPinia();

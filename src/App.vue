@@ -1,45 +1,59 @@
 <template>
-  <ion-menu content-id="main-content" v-if="!this.IsMenuActive()">
-    <ion-header>
-      <ion-toolbar>
-        <ion-title>Menu Content</ion-title>
-      </ion-toolbar>
-    </ion-header>
-    <ion-content class="ion-padding">
+  <ion-app>
+    <ion-menu content-id="main-content" v-if="!this.IsMenuDisable()">
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Menu Content</ion-title>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding">
         <p>This is the menu content.</p>
-        </ion-content>
+      </ion-content>
 
-    <ion-footer>
-      <ion-toolbar>
-        <ion-button expand="full" fill="clear" color="danger" @click="this.LogoutService()">
-          <ion-icon :icon="logOutOutline" slot="start"></ion-icon>
-          Logout
-        </ion-button>
-      </ion-toolbar>
-    </ion-footer>
+      <ion-footer>
+        <ion-toolbar>
+          <ion-button expand="full" fill="clear" color="danger" @click="this.LogoutService()">
+            <ion-icon :icon="logOutOutline" slot="start"></ion-icon>
+            Logout
+          </ion-button>
+        </ion-toolbar>
+      </ion-footer>
     </ion-menu>
-  <ion-page id="main-content">
-    <ion-header v-if="!this.IsMenuActive()">
-      <ion-toolbar>
-        <ion-buttons slot="start">
-          <ion-menu-button></ion-menu-button>
-        </ion-buttons>
-        <ion-title>Menu</ion-title>
-      </ion-toolbar>
-    </ion-header>
-    <ion-content class="ion-padding">
-      <router-view></router-view>
-    </ion-content>
-  </ion-page>
+    <ion-page id="main-content">
+      <ion-header v-if="!this.IsMenuDisable()">
+        <ion-toolbar>
+          <ion-buttons slot="start">
+            <ion-menu-button></ion-menu-button>
+          </ion-buttons>
+          <ion-title>Menu</ion-title>
+        </ion-toolbar>
+      </ion-header>
+      <ion-header v-if="this.IsProgressBarActive()" class="ion-no-border">
+        <ion-toolbar>
+          <progress-bar />
+        </ion-toolbar>
+        <ion-toolbar>
+          <back-button />
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding">
+        <router-view></router-view>
+      </ion-content>
+    </ion-page>
+  </ion-app>
 </template>
 
 <script>
-import { IonButtons, IonContent, IonHeader, IonMenu, IonMenuButton, IonPage, IonTitle, IonToolbar, IonFooter, IonButton, IonIcon  } from '@ionic/vue';
-import { logOutOutline } from 'ionicons/icons'; // <<< YENİ: İkonu import et
+import BackButton from './components/BackButton.vue';
+import ProgressBar from './components/ProgressBar.vue';
+import {  IonApp, IonButtons, IonContent, IonHeader, IonMenu, IonMenuButton, IonPage, IonTitle, IonToolbar, IonFooter, IonButton, IonIcon } from '@ionic/vue';
+import { logOutOutline } from 'ionicons/icons';
 import { UseStore } from './stores/store';
 import axios from 'axios';
 export default {
   components: {
+    ProgressBar,
+    IonApp,
     IonButtons,
     IonContent,
     IonHeader,
@@ -48,15 +62,16 @@ export default {
     IonPage,
     IonTitle,
     IonToolbar,
-    IonFooter, 
-    IonButton, 
-    IonIcon 
+    IonFooter,
+    IonButton,
+    IonIcon,
+    BackButton
   },
   setup() {
     const store = UseStore();
     return {
       store,
-      logOutOutline 
+      logOutOutline
     }
   },
   data: function () {
@@ -66,34 +81,40 @@ export default {
     }
   },
   methods: {
-    IsMenuActive(){
+    IsProgressBarActive() {
+      var routeName = this.$route.name;
+      var hideMenuList = ["login", "register", "setPassword", "verification", "registerComplete"];
+
+      return hideMenuList.some(function (row) { return row === routeName });
+    },
+    IsMenuDisable() {
       var routeName = this.$route.name;
       var hideMenuList = ["login", "welcome", "register", "setPassword", "verification", "registerComplete"];
 
-      return hideMenuList.some(function(row){ return row === routeName});
+      return hideMenuList.some(function (row) { return row === routeName });
     },
-    LogoutService(){
+    LogoutService() {
       var ServerRoot = this.store.ServerRoot;
       var EMailAddress = this.store.UserData.EMailAddress;
       var Token = this.store.Token;
 
       axios.put(`${ServerRoot}/logout/${EMailAddress}`, {}, {
-        headers:{
+        headers: {
           "Authorization": "Bearer " + Token
         }
       })
-      .then(res => {
-        console.log(res);
-        if(res.status === 200) {
-          console.log("Çıkış Yapılıyor. ");
-          this.$router.replace({path:'/login'});
-          this.store.ResetPiniaStore();
-        }
-      })
-      .catch(err => {
-        console.log(err);
-        if(err.status === 504) return this.LogoutService();
-      })
+        .then(res => {
+          console.log(res);
+          if (res.status === 200) {
+            console.log("Çıkış Yapılıyor. ");
+            this.$router.replace({ path: '/login' });
+            this.store.ResetPiniaStore();
+          }
+        })
+        .catch(err => {
+          console.log(err);
+          if (err.status === 504) return this.LogoutService();
+        })
     },
     IsAuthenticated() {
       var UserData = this.UserData;
@@ -117,10 +138,10 @@ export default {
 
       this.socket.onmessage = (event) => {
         console.log('Sunucudan Gelen Data', JSON.parse(event.data));
- 
+
         var UserData = JSON.parse(event.data).payload;
 
-        if(Object.keys(UserData).length){
+        if (Object.keys(UserData).length) {
           for (var key in UserData) {
             this.store.UserData[key] = UserData[key];
           }
@@ -137,11 +158,11 @@ export default {
       };
     },
   },
-  created() {
-    console.log("App başlatıldı. ");
-  },
   mounted() {
     this.WebSocketForWatchAuth();
+
+    this.store.AppStarted = true;
+    console.log("App Started.");
   },
   watch: {
     'store.Token': {

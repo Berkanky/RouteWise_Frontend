@@ -7,7 +7,7 @@
             </div>
 
             <!-- Başlık -->
-            <h1 class="title">Welcome to RouteWise</h1> 
+            <h1 class="title">Welcome to RouteWise</h1>
             <p class="subtitle">
                 Login and unlock the smarter travel with RouteWise
             </p>
@@ -16,28 +16,29 @@
             <form @submit.prevent="onSubmit" class="form">
                 <ion-item class="input-item" lines="none">
                     <ion-label position="stacked" class="inputLabels">Email Address</ion-label>
-                    <ion-input v-model="this.store.LoginData.EMailAddress" type="email" placeholder="username@example.com" required :disabled="this.store.LoginData.Verified"></ion-input>
+                    <ion-input v-model="this.store.LoginData.EMailAddress" type="email"
+                        placeholder="username@example.com" required
+                        :disabled="this.store.LoginData.Verified"></ion-input>
                 </ion-item>
 
                 <ion-item class="input-item" lines="none">
                     <ion-label position="stacked" class="inputLabels">Password</ion-label>
-                    <ion-input v-model="this.store.LoginData.Password" type="password" placeholder="Password" minlength="6"
-                        required></ion-input>
+                    <ion-input v-model="this.store.LoginData.Password" type="password" placeholder="Password"
+                        minlength="6" required></ion-input>
                 </ion-item>
 
                 <ion-item class="input-item remember-item" lines="none">
-                    <ion-checkbox color="routematic-red" v-model="this.store.LoginData.IsRemindDeviceActive" slot="start" class="remember-checkbox"></ion-checkbox>
+                    <ion-checkbox color="routematic-red" v-model="this.store.LoginData.IsRemindDeviceActive"
+                        slot="start" class="remember-checkbox"></ion-checkbox>
                     <ion-label class="remember-label">Remember this device</ion-label>
                 </ion-item>
 
-                <ion-button 
-                    v-if="!this.store.LoginData.Verified"
-                    v-on:click="this.store.LoginEmailVerificationSend()" type="submit" expand="block" class="continue-button" :disabled="!isValid()">
+                <ion-button v-if="!this.store.LoginData.Verified" v-on:click="this.store.LoginEmailVerificationSend()"
+                    type="submit" expand="block" class="continue-button" :disabled="!isValid()">
                     Continue
                 </ion-button>
-                <ion-button 
-                    v-if="this.store.LoginData.Verified"
-                    v-on:click="this.LoginService()" type="submit" expand="block" class="continue-button" :disabled="!isValid()">
+                <ion-button v-if="this.store.LoginData.Verified" v-on:click="this.LoginService()" type="submit"
+                    expand="block" class="continue-button" :disabled="!isValid()">
                     Login
                 </ion-button>
             </form>
@@ -47,8 +48,9 @@
 
 <script>
 import { UseStore } from '../stores/store';
-import { IonPage, IonContent, IonItem, IonLabel, IonInput, IonButton, IonCheckbox  } from '@ionic/vue';
+import { IonPage, IonContent, IonItem, IonLabel, IonInput, IonButton, IonCheckbox } from '@ionic/vue';
 import { Device } from '@capacitor/device';
+import { Preferences } from '@capacitor/preferences';
 import axios from 'axios';
 export default {
     components: {
@@ -58,7 +60,7 @@ export default {
         IonLabel,
         IonInput,
         IonButton,
-        IonCheckbox 
+        IonCheckbox
     },
     setup() {
         const store = UseStore();
@@ -71,34 +73,46 @@ export default {
 
         }
     },
-    created(){
-        if(!this.store.LoginData.Verified) this.store.OnboardingStep = 1;
+    created() {
+        if (!this.store.LoginData.Verified) this.store.OnboardingStep = 1;
     },
     methods: {
-        isValid(){
+        async saveRefreshToken(RefreshToken) {
+            try {
+                await Preferences.set({
+                    key: 'RefreshToken',
+                    value: RefreshToken,
+                });
+            } catch (error) {
+                console.error('İsim kaydedilirken hata:', error);
+            }
+        },
+        isValid() {
             var EMailAddress = this.store.LoginData?.EMailAddress;
             var Password = this.store.LoginData.Password;
             return this.store.EMailAddressRegex(EMailAddress) && Password ? true : false
         },
-        async LoginService(){
+        async LoginService() {
             await this.GetDeviceDetails();
             var ServerRoot = this.store.ServerRoot;
             var EMailAddress = this.store.LoginData.EMailAddress;
-            var Password = this.store.LoginData.Password;
-            console.log("Login Data : ", JSON.stringify(this.store.LoginData));
 
-            axios.post(`${ServerRoot}/login/${EMailAddress}`, { LoginData: this.store.LoginData, Password: Password})
+            axios.post(`${ServerRoot}/login/${EMailAddress}`, { LoginData: this.store.LoginData })
                 .then(res => {
                     console.log(res);
-                    if(res.status === 200) {
+                    if (res.status === 200) {
                         this.store.UserData = res.data.UserData;
                         this.store.Token = res.data.Token;
-                        this.$router.push({path:'/Home'});
+                        if( 'RefreshToken' in res.data){
+                            var RefreshToken = res.data.RefreshToken;
+                            this.saveRefreshToken(RefreshToken);
+                        }
+                        this.$router.push({ path: '/Home' });
                     }
                 })
                 .catch(err => {
                     console.log(err);
-                    if(err.status === 504) this.LoginService();
+                    if (err.status === 504) this.LoginService();
                 })
         },
         async GetDeviceDetails() {
@@ -123,28 +137,29 @@ export default {
             }
         }
     },
-    watch:{
-        'store.LoginData':{
-            handler(newVal){
-                
+    watch: {
+        'store.LoginData': {
+            handler(newVal) {
+
                 var Type = 'Login';
 
-                if( newVal && 'VerifySended' in newVal && newVal['VerifySended']) {
-                    this.$router.push({path:"/verification/" + this.store.LoginData.EMailAddress + "/" + Type });
+                if (newVal && 'VerifySended' in newVal && newVal['VerifySended']) {
+                    this.$router.push({ path: "/verification/" + this.store.LoginData.EMailAddress + "/" + Type });
                 }
 
-                if( newVal && 'Verified' in newVal && newVal['Verified']) this.store.OnboardingStep = 3;
+                if (newVal && 'Verified' in newVal && newVal['Verified']) this.store.OnboardingStep = 3;
             },
-            immediate:true, deep:true
+            immediate: true, deep: true
         }
     }
 }
 </script>
 
 <style scoped>
-.inputLabels{
+.inputLabels {
     font-weight: bold;
 }
+
 .signup-page {
     --background: #ffffff;
 }
@@ -192,26 +207,26 @@ ion-input {
 .continue-button {
     --background: #e4002b;
     --border-radius: 24px;
-    color:#fff;
+    color: #fff;
     margin-top: 16px;
     font-size: 16px;
     font-weight: 500;
 }
 
 .remember-item {
-    border: none; 
+    border: none;
     --inner-padding-start: 4px;
-    margin-top: 8px; 
-    margin-bottom: 20px; 
+    margin-top: 8px;
+    margin-bottom: 20px;
 }
 
 .remember-checkbox {
     --size: 20px;
-    margin-right: 10px; 
+    margin-right: 10px;
 }
 
 .remember-label {
-     font-size: 14px;
-     color: #333;
+    font-size: 14px;
+    color: #333;
 }
 </style>

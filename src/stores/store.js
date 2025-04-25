@@ -13,7 +13,7 @@ export const UseStore = defineStore("UseStore", {
     RegisterData: { VerifySended: false },
     SetPasswordData: {},
 
-    Token: "",
+    Token: '',
     ServerRoot: "https://routewisebackend-production.up.railway.app",
 
     OnboardingStep:1,

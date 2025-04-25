@@ -105,11 +105,8 @@ export default {
       })
         .then(res => {
           console.log(res);
-          if (res.status === 200) {
-            console.log("Çıkış Yapılıyor. ");
-            this.$router.replace({ path: '/login' });
-            this.store.ResetPiniaStore();
-          }
+          this.$router.replace({ path: '/login' });
+          this.store.ResetPiniaStore();
         })
         .catch(err => {
           console.log(err);
@@ -177,7 +174,7 @@ export default {
           console.log('Store UserData :  ', newVal);
           this.UserData = newVal;
           if ("Active" in newVal) {
-            if (!newVal["Active"] || !newVal["TwoFAStatus"]) return this.$router.replace({ path: '/welcome' });
+            if (!newVal["Active"]) return this.$router.replace({ path: '/welcome' });
           } else {
             return this.$router.replace({ path: '/welcome' });
           }

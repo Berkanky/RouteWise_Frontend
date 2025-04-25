@@ -32,6 +32,8 @@ import {
 import { Device } from '@capacitor/device';
 import { UseStore } from '../stores/store';
 import axios from 'axios';
+import { Preferences } from '@capacitor/preferences';
+
 export default {
   components: {
     IonPage,
@@ -50,10 +52,10 @@ export default {
     }
   },
   created(){
-    //this.store.ResetPiniaStore();
+    //
   },
   mounted(){
-    if(!this.store.DeviceId && this.store.AppStarted) this.GetDeviceId();
+    if( this.store.AppStarted && !this.store.DeviceId) this.GetDeviceId();
   },
   methods: {
     GoLoginPage(){
@@ -67,22 +69,37 @@ export default {
       var DeviceId = idResult.identifier;
       this.store.DeviceId = DeviceId;
 
+      this.CheckRefreshToken(DeviceId);
+    },
+    AutoLoginService(DeviceId, RefreshToken){
+      console.log(JSON.stringify({ DeviceId, RefreshToken}));
       var ServerRoot = this.store.ServerRoot;
-      
-      axios.get(`${ServerRoot}/auto/login/devices/${DeviceId}`)
-        .then(res => {
+      axios.put(`${ServerRoot}/auto/login`, { DeviceId:  DeviceId, Token: RefreshToken}, {})
+        .then( res => {
           console.log(res);
-          if( res.status === 200) {
-            this.store.UserData = res.data.Auth;
+          if(res.status === 200){
             this.store.Token = res.data.Token;
-            this.$router.push({path:'/home'});
+            this.store.UserData = res.data.Auth;
+            this.$router.replace({ path:'/Home'});
           }
         })
         .catch(err => {
           console.log(err);
-          if(err.status === 504) this.GetDeviceId();
+          if( err.status === 504) this.AutoLoginService(DeviceId, RefreshToken);
         })
-    }
+    },
+    async CheckRefreshToken(DeviceId) {
+      try {
+        var { value } = await Preferences.get({ key: 'RefreshToken' });
+
+        if (value) {
+          console.log("Yakalanan refresh token. ", value);
+          this.AutoLoginService(DeviceId, value);
+        }
+      } catch (error) {
+        console.error('Refresh token yakalanamadı. ', error);
+      }
+    },
   },
 
 }

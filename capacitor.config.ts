@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.routewise.routewise',
+  appId: 'com.yusufberkankaymaz.routewise',
   appName: 'RouteWise',
   webDir: 'dist',
   plugins: {

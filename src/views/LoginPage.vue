@@ -16,21 +16,34 @@
             <form @submit.prevent="onSubmit" class="form">
                 <ion-item class="input-item" lines="none">
                     <ion-label position="stacked" class="inputLabels">Email Address</ion-label>
-                    <ion-input v-model="this.store.LoginData.EMailAddress" type="email"
+                    <ion-input class="ion-input-ion" v-model="this.store.LoginData.EMailAddress" type="email"
                         placeholder="username@example.com" required
                         :disabled="this.store.LoginData.Verified"></ion-input>
                 </ion-item>
 
                 <ion-item class="input-item" lines="none">
                     <ion-label position="stacked" class="inputLabels">Password</ion-label>
-                    <ion-input v-model="this.store.LoginData.Password" type="password" placeholder="Password"
+                    <ion-input 
+                        class="ion-input-ion"
+                        v-model="this.store.LoginData.Password" type="password" placeholder="Password"
                         minlength="6" required></ion-input>
                 </ion-item>
 
                 <ion-item class="input-item remember-item" lines="none">
-                    <ion-checkbox color="routematic-red" v-model="this.store.LoginData.IsRemindDeviceActive"
-                        slot="start" class="remember-checkbox"></ion-checkbox>
-                    <ion-label class="remember-label">Remember this device</ion-label>
+                    <ion-checkbox 
+                        color="routematic-red" 
+                        v-model="store.LoginData.IsRemindDeviceActive"
+                        slot="start" 
+                        class="remember-checkbox">
+                    </ion-checkbox>
+                    
+                    <ion-label class="remember-label">Remember this device</ion-label> 
+                    
+                    <ion-label 
+                        class="remember-label forgot-password-link" 
+                        slot="end"  
+                        @click="goSetPassword()"> Forgot Password ?
+                    </ion-label>
                 </ion-item>
 
                 <ion-button v-if="!this.store.LoginData.Verified" v-on:click="this.store.LoginEmailVerificationSend()"
@@ -77,6 +90,9 @@ export default {
         if (!this.store.LoginData.Verified) this.store.OnboardingStep = 1;
     },
     methods: {
+        goSetPassword(){
+            this.$router.push({path:'/set/password'});
+        },
         async saveRefreshToken(RefreshToken) {
             try {
                 await Preferences.set({
@@ -103,7 +119,7 @@ export default {
                     if (res.status === 200) {
                         this.store.UserData = res.data.UserData;
                         this.store.Token = res.data.Token;
-                        if( 'RefreshToken' in res.data){
+                        if ('RefreshToken' in res.data) {
                             var RefreshToken = res.data.RefreshToken;
                             this.saveRefreshToken(RefreshToken);
                         }
@@ -156,6 +172,12 @@ export default {
 </script>
 
 <style scoped>
+.ion-input-ion{
+    --border-radius: 25px;
+    --border-color: #e0e0e0;
+    --border-width: 1px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
 .inputLabels {
     font-weight: bold;
 }
@@ -201,7 +223,6 @@ export default {
 ion-input {
     --padding-start: 12px;
     --padding-end: 12px;
-    --border-radius: 8px;
 }
 
 .continue-button {

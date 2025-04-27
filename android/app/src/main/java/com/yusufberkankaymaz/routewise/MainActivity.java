@@ -1,4 +1,4 @@
-package io.ionic.starter;
+package com.yusufberkankaymaz.routewise;
 
 import com.getcapacitor.BridgeActivity;
 

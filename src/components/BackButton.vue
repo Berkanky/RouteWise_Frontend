@@ -5,7 +5,7 @@
   </template>
   
   <script>
-  import { IonButton, IonIcon } from '@ionic/vue';
+  import { IonButton, IonIcon, useIonRouter } from '@ionic/vue';
   import { chevronBackCircleOutline } from 'ionicons/icons';
   import { UseStore } from '../stores/store';
   
@@ -16,15 +16,18 @@
     },
     setup() {
       const store = UseStore();
+      const ionRouter = useIonRouter();
       return {
         store,
-        chevronBackCircleOutline
+        chevronBackCircleOutline,
+        ionRouter
       }
     },
     data: function () { return {} },
     methods: {
         goBack(){
-            this.$router.go(-1);
+          if (this.ionRouter.canGoBack()) this.ionRouter.back();
+          else this.ionRouter.replace('/welcome');
         }
     }
   }

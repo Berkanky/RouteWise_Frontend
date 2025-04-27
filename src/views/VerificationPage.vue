@@ -50,10 +50,7 @@ import {
     IonContent,
     IonItem,
     IonInput,
-    useIonRouter,
-    IonHeader,
-    IonToolbar,
-    IonTitle
+    useIonRouter
 } from '@ionic/vue';
 import { chevronBackOutline } from 'ionicons/icons';
 import axios from 'axios';
@@ -67,9 +64,6 @@ export default defineComponent({
         IonItem,
         IonInput,
         TimerPill,
-        IonHeader,
-        IonToolbar,
-        IonTitle
     },
     setup() {
         const store = UseStore();
@@ -93,7 +87,6 @@ export default defineComponent({
     methods: {
         isValid() {
             var codeStr = String(this.VerificationId || '');
-            console.log('isValid : ', /^\d{6}$/.test(codeStr));
             return /^\d{6}$/.test(codeStr);
         },
         ResendVerificationId() {
@@ -101,6 +94,7 @@ export default defineComponent({
 
             if (Type === 'Login') return this.store.LoginEmailVerificationSend();
             if (Type === 'Register') return this.store.RegisterEmailVerificationSend();
+            if (Type === 'setPassword') return this.store.SetPasswordEmailVerificationSend();
         },
         ConfirmVerificationId() {
             if (this.isValid) {
@@ -133,6 +127,22 @@ export default defineComponent({
                             if (err.status === 504) return this.ConfirmVerificationId();
                         })
                 }
+                if (Type === 'setPassword') {
+                    axios.post(`${ServerRoot}/set/password/email/confirm/${EMailAddress}`, { VerificationId: this.VerificationId })
+                        .then(res => {
+                            console.log(res);
+                            if (res.status === 200) {
+                                this.store.SetPasswordData.Verified = true;
+                                this.store.SetPasswordData.VerifySended = false;
+                                this.store.Token = res.data.Token;
+                                this.$router.push({ path: '/set/password/complete' });
+                            }
+                        })
+                        .catch(err => {
+                            console.log(err);
+                            if (err.status === 504) return this.ConfirmVerificationId();
+                        })
+                }
             }
         },
         goBack() {
@@ -143,6 +153,8 @@ export default defineComponent({
     created() {
         var { EMailAddress, Type } = this.$route.params;
         this.EMailAddress = EMailAddress;
+
+        this.store.VerificationPageType = Type;
         this.Type = Type;
 
         this.store.OnboardingStep = 2;
@@ -184,8 +196,6 @@ export default defineComponent({
 .otp-page-target {
     --background: #ffffff;
 }
-
-ion-header {}
 
 ion-toolbar {
     --background: #ffffff;

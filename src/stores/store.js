@@ -17,7 +17,9 @@ export const UseStore = defineStore("UseStore", {
     ServerRoot: "https://routewisebackend-production.up.railway.app",
 
     OnboardingStep:1,
-    AppStarted: false
+    AppStarted: false,
+
+    VerificationPageType:''
   }),
   actions: {
     ResetPiniaStore() {
@@ -66,8 +68,25 @@ export const UseStore = defineStore("UseStore", {
           if (err.status === 504) this.ContinueEmailVerificationStep();
         });
     },
+    SetPasswordEmailVerificationSend(){
+      var EMailAddress = this.SetPasswordData.EMailAddress;
+      var ServerRoot = this.ServerRoot;
+
+      this.SetPasswordData.VerifySended = false;
+
+      axios.post(`${ServerRoot}/set/password/email/verification/${EMailAddress}`, {}, {})
+        .then(res => {
+          console.log(res);
+          if( res.status === 200) this.SetPasswordData.VerifySended = true;
+        })  
+        .catch(err => {
+          console.log(err);
+          if( err.status === 504) return this.SetPasswordEmailVerificationSend();
+        })
+
+    },
     PasswordRegex(Password){
-      var pattern = /^(?=.{10,64}$)(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+=[\]{};':"\\|,.<>/?-]).*$/;
+      var pattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
       return pattern.test(Password);
     }
   },

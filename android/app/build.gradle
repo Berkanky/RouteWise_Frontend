@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace "io.ionic.starter"
+    namespace "com.yusufberkankaymaz.routewise"
     compileSdk rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "io.ionic.starter"
+        applicationId "com.yusufberkankaymaz.routewise"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
@@ -16,10 +16,26 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            if (project.hasProperty('MYAPP_RELEASE_STORE_PASSWORD')) {
+                // Yolu project.rootDir'in BİR ÜST KLASÖRÜNE göre hesapla
+                def keystorePath = "${project.rootDir.parent}/KeyStore/route-wise-release-key.keystore" // Değişiklik burada: .parent eklendi
+                println ">>> Keystore yolu hesaplandi: ${keystorePath}" // Kontrol için kalsın
+                storeFile file(keystorePath)
+                storePassword project.property('MYAPP_RELEASE_STORE_PASSWORD')
+                keyAlias project.property('MYAPP_RELEASE_KEY_ALIAS')
+                keyPassword project.property('MYAPP_RELEASE_KEY_PASSWORD')
+            } else {
+               println "Signing configurations not found in gradle.properties."
+            }
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
     }
 }

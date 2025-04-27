@@ -36,7 +36,7 @@
           <back-button />
         </ion-toolbar>
       </ion-header>
-      <ion-content class="ion-padding">
+      <ion-content class="ion-padding myApp">
         <router-view></router-view>
       </ion-content>
     </ion-page>
@@ -82,14 +82,15 @@ export default {
   },
   methods: {
     IsProgressBarActive() {
+      var hideMenuList = ["register", "setPassword", "verification", "registerComplete", "setPasswordComplete"];
       var routeName = this.$route.name;
-      var hideMenuList = ["login", "register", "setPassword", "verification", "registerComplete"];
-
+      var VerificationPageType = this.store.VerificationPageType;
+      if( VerificationPageType === "Login") hideMenuList = hideMenuList.filter(function(item){ return item !== 'verification'});
       return hideMenuList.some(function (row) { return row === routeName });
     },
     IsMenuDisable() {
       var routeName = this.$route.name;
-      var hideMenuList = ["login", "welcome", "register", "setPassword", "verification", "registerComplete"];
+      var hideMenuList = ["login", "welcome", "register", "setPassword", "verification", "registerComplete", "setPasswordComplete"];
 
       return hideMenuList.some(function (row) { return row === routeName });
     },
@@ -188,6 +189,12 @@ export default {
 
 
 <style scoped>
+.myApp{
+  font-family: "Open Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+  font-variation-settings:"wdth" 100;
+}
 ion-menu ion-content {
   --background: var(--ion-item-background, var(--ion-background-color, #fff));
 }

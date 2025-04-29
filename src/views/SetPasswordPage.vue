@@ -3,7 +3,7 @@
         <ion-content fullscreen>
             <!-- Logo -->
             <div class="logo-wrapper">
-                <img src="../Images/Vector.png" alt="Routewise Logo" class="logo" />
+                <img src="../Images/RouteWise-3D-İcon.png" alt="Routewise Logo" class="logo" />
             </div>
 
             <!-- Başlık -->
@@ -15,11 +15,19 @@
             <!-- Form -->
             <form @submit.prevent="onSubmit" class="form">
 
-                <ion-item class="input-item" lines="none">
-                    <ion-label position="stacked" class="inputLabels">Email Address</ion-label>
-                    <ion-input v-model="this.store.SetPasswordData.EMailAddress" type="email"
+                <ion-item class="input-container" lines="none">
+                    <!-- <ion-label position="stacked" class="inputLabels">Email Address</ion-label> -->
+                    <ion-input 
+                        class="custom-input"
+                        v-model="this.store.SetPasswordData.EMailAddress" type="email"
                         placeholder="username@example.com" required></ion-input>
                 </ion-item>
+
+                <RequirementContainerVue
+                    Type="setPassword"
+                    RequirementType="EMailAddress"
+                    :IsValid="this.store.EMailAddressRegex(this.store.SetPasswordData.EMailAddress)"
+                />
 
                 <ion-button v-on:click="this.store.SetPasswordEmailVerificationSend()" type="submit" expand="block"
                     class="continue-button" :disabled="!isValid()">
@@ -31,6 +39,8 @@
 </template>
 
 <script>
+import RequirementContainerVue from '@/components/RequirementContainer.vue';
+
 import { UseStore } from '../stores/store';
 import { IonPage, IonContent, IonItem, IonLabel, IonInput, IonButton } from '@ionic/vue';
 export default {
@@ -40,7 +50,8 @@ export default {
         IonItem,
         IonLabel,
         IonInput,
-        IonButton
+        IonButton,
+        RequirementContainerVue
     },
     setup() {
         const store = UseStore();
@@ -79,6 +90,25 @@ export default {
 </script>
 
 <style scoped>
+
+.input-container {
+    --background: #ffffff;
+    --border-radius: 25px;
+    --border-color: #e0e0e0;
+    --border-width: 1px;
+    --padding-start: 15px;
+    --padding-end: 15px;
+    margin-bottom: 15px;
+    width: 100%;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    --border-style: solid;
+}
+
+.custom-input {
+  --placeholder-color: #999;
+  --placeholder-opacity: 1;
+}
+
 .inputLabels {
     font-weight: bold;
 }
@@ -134,5 +164,6 @@ ion-input {
     margin-top: 16px;
     font-size: 16px;
     font-weight: 500;
+    text-transform: none;
 }
 </style>

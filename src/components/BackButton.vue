@@ -25,9 +25,15 @@
     },
     data: function () { return {} },
     methods: {
-        goBack(){
-          if (this.ionRouter.canGoBack()) this.ionRouter.back();
-          else this.ionRouter.replace('/welcome');
+        async goBack(){
+          if (this.ionRouter.canGoBack()) {
+            console.log(" go back ");
+            this.ionRouter.back();
+          }
+          else {
+            console.log(" go welcome ");
+            this.ionRouter.replace('/welcome');
+          }
         }
     }
   }

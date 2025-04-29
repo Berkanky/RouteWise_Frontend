@@ -4,7 +4,8 @@
             <div class="logo-wrapper">
                 <img :src="ClockIcon" alt="Routewise Logo" class="logo" />
                 <p class="subtitle-target">The verification code will expire in:</p>
-                <TimerPill :VerifySendedCount="this.VerifySendedCount" />
+                <TimerPill @VerificationIdExpired="getVerificationIdExpired"
+                    :VerifySendedCount="this.VerifySendedCount" />
 
             </div>
             <div class="text-section-target">
@@ -12,27 +13,38 @@
                 <p class="subtitle-target">We’ve sent a 6‑digit code to your email.</p>
             </div>
 
-            <ion-item class="input-item" lines="none">
-                <ion-input v-if="this.Type == 'Login'" v-model="this.store.LoginData.EMailAddress" type="email"
-                    placeholder="username@example.com" disabled required class="otp-input-target">
-                </ion-input>
-                <ion-input v-if="this.Type == 'Register'" v-model="this.store.RegisterData.EMailAddress" type="email"
-                    placeholder="username@example.com" disabled required class="otp-input-target">
+            <ion-item class="input-container" lines="none">
+                <ion-input 
+                    v-model="this.EMailAddress" type="email"
+                    placeholder="username@example.com" disabled required class="custom-input">
                 </ion-input>
             </ion-item>
 
-            <ion-item class="otp-item-target" lines="none" style="margin-top:16px;">
+            <ion-item class="input-container" lines="none" style="margin-top:16px;">
                 <ion-input v-model="this.VerificationId" type="tel" inputmode="numeric" maxlength="6"
-                    placeholder="Enter 6‑digit code" class="otp-input-target" />
+                    placeholder="Enter digit code." class="custom-input" />
             </ion-item>
+
+            <div class="requirements-list">
+                <p class="requirement-item requirement-error"
+                    v-if="!this.VerificationActive">
+                    <ion-icon :icon="closeOutline" style="margin-right:5px;color:red;font-size:15px;"></ion-icon>
+                    The verification code has expired, please send the code again.
+                </p>
+                <p class="requirement-item requirement-error"
+                    v-if="!this.isValid()">
+                    <ion-icon :icon="closeOutline" style="margin-right:5px;color:red;font-size:15px;"></ion-icon>
+                    Please enter a valid code.
+                </p>
+            </div>
 
             <div class="buttons-row-target">
                 <ion-button expand="block" class="next-btn-target" @click="this.ResendVerificationId()">
                     Resend
                 </ion-button>
 
-                <ion-button expand="block" class="next-btn-target" :disabled="!this.isValid()"
-                    @click="this.ConfirmVerificationId()">
+                <ion-button expand="block" class="next-btn-target"
+                    :disabled="!this.isValid() || !this.VerificationActive" @click="this.ConfirmVerificationId()">
                     Next
                 </ion-button>
             </div>
@@ -50,9 +62,10 @@ import {
     IonContent,
     IonItem,
     IonInput,
-    useIonRouter
+    useIonRouter,
+    IonIcon
 } from '@ionic/vue';
-import { chevronBackOutline } from 'ionicons/icons';
+import { chevronBackOutline, closeOutline } from 'ionicons/icons';
 import axios from 'axios';
 import { UseStore } from '../stores/store';
 export default defineComponent({
@@ -64,6 +77,7 @@ export default defineComponent({
         IonItem,
         IonInput,
         TimerPill,
+        IonIcon,
     },
     setup() {
         const store = UseStore();
@@ -72,7 +86,8 @@ export default defineComponent({
             ionRouter,
             ioniconsChevronBackOutline: chevronBackOutline,
             store,
-            ClockIcon
+            ClockIcon,
+            closeOutline
         };
     },
     data() {
@@ -81,10 +96,14 @@ export default defineComponent({
             EMailAddress: '',
             Type: '',
             VerifySended: false,
-            VerifySendedCount: 0
+            VerifySendedCount: 0,
+            VerificationActive: true,
         };
     },
     methods: {
+        getVerificationIdExpired(data) {
+            if (data === true) this.VerificationActive = false;
+        },
         isValid() {
             var codeStr = String(this.VerificationId || '');
             return /^\d{6}$/.test(codeStr);
@@ -158,8 +177,19 @@ export default defineComponent({
         this.Type = Type;
 
         this.store.OnboardingStep = 2;
+
+        this.VerificationActive = true;
     },
     watch: {
+        'store.SetPasswordData': {
+            handler(newVal) {
+                if (newVal && 'VerifySended' in newVal && newVal["VerifySended"]) {
+                    this.VerifySended = true;
+                    this.VerifySendedCount = this.VerifySendedCount + 1;
+                }
+            },
+            immediate: true, deep: true
+        },
         'store.RegisterData': {
             handler(newVal) {
                 if (newVal && 'VerifySended' in newVal && newVal["VerifySended"]) {
@@ -183,6 +213,25 @@ export default defineComponent({
 </script>
 
 <style scoped>
+
+.input-container {
+    --background: #ffffff;
+    --border-radius: 25px;
+    --border-color: #e0e0e0;
+    --border-width: 1px;
+    --padding-start: 15px;
+    --padding-end: 15px;
+    margin-bottom: 15px;
+    width: 100%;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    --border-style: solid;
+}
+
+.custom-input {
+  --placeholder-color: #999;
+  --placeholder-opacity: 1;
+}
+
 .logo-wrapper {
     text-align: center;
     margin-top: 60px;
@@ -246,25 +295,6 @@ ion-toolbar {
     color: #666;
 }
 
-.otp-item-target {
-    --background: transparent;
-    --padding-start: 16px;
-    --padding-end: 16px;
-    --inner-padding-end: 0;
-    --min-height: 50px;
-    margin-bottom: 16px;
-}
-
-.otp-input-target {
-    border: 1px solid #dcdcdc;
-    border-radius: 25px;
-    --padding-start: 20px;
-    --padding-end: 20px;
-    font-size: 16px;
-    text-align: left;
-    letter-spacing: normal;
-}
-
 .resend-text-section {
     text-align: center;
     margin-bottom: 30px;
@@ -325,4 +355,34 @@ ion-toolbar {
     --background: #fecdd3;
     opacity: 1;
 }
+
+.requirements-list {
+  width: 100%;
+  padding-left: 15px;
+  margin-top: 5px;
+  margin-bottom: 30px;
+}
+
+.requirement-item {
+  font-size: 0.8em;
+  color: #888;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+}
+
+.requirement-valid {
+  color: green;
+}
+
+.requirement-invalid-text {
+  color: #888;
+}
+
+.requirement-error {
+  color: red;
+  font-weight: bold;
+}
+
 </style>

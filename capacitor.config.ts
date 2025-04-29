@@ -11,6 +11,11 @@ const config: CapacitorConfig = {
       backgroundColor: "#ffffffff",
     },
   },
+  android: {
+    overrideMainActivityConfig: {
+      windowSoftInputMode: "adjustResize"
+    }
+  }
 };
 
 export default config;

@@ -29,15 +29,20 @@
         </ion-toolbar>
       </ion-header>
       <ion-header v-if="this.IsProgressBarActive()" class="ion-no-border">
-        <ion-toolbar>
+        <!-- <ion-toolbar>
           <progress-bar />
-        </ion-toolbar>
-        <ion-toolbar>
+        </ion-toolbar> -->
+        <!-- <ion-toolbar>
           <back-button />
-        </ion-toolbar>
+        </ion-toolbar> -->
       </ion-header>
       <ion-content class="ion-padding myApp">
         <router-view></router-view>
+        <AlertBar 
+          v-if="this.AlertBarActive"
+          @AlertBarClosed="getAlertBarClosed"
+          :AlertBarActive="this.AlertBarActive" 
+          :ServiceRequestData="this.store.ServiceRequestData" />
       </ion-content>
     </ion-page>
   </ion-app>
@@ -50,6 +55,7 @@ import {  IonApp, IonButtons, IonContent, IonHeader, IonMenu, IonMenuButton, Ion
 import { logOutOutline } from 'ionicons/icons';
 import { UseStore } from './stores/store';
 import axios from 'axios';
+import AlertBar from './components/AlertBar.vue';
 export default {
   components: {
     ProgressBar,
@@ -65,7 +71,8 @@ export default {
     IonFooter,
     IonButton,
     IonIcon,
-    BackButton
+    BackButton,
+    AlertBar
   },
   setup() {
     const store = UseStore();
@@ -77,10 +84,17 @@ export default {
   data: function () {
     return {
       socket: '',
-      UserData: {}
+      UserData: {},
+      AlertBarActive: false
     }
   },
   methods: {
+    getAlertBarClosed(data){
+      if( data === true) {
+        this.AlertBarActive = !data;
+        this.store.ServiceRequestData = {};
+      }
+    },
     IsProgressBarActive() {
       var hideMenuList = ["register", "setPassword", "verification", "registerComplete", "setPasswordComplete"];
       var routeName = this.$route.name;
@@ -160,7 +174,7 @@ export default {
     this.WebSocketForWatchAuth();
 
     this.store.AppStarted = true;
-    console.log("App Started.");
+    this.store.WatchServices();
   },
   watch: {
     'store.Token': {
@@ -179,6 +193,15 @@ export default {
           } else {
             return this.$router.replace({ path: '/welcome' });
           }
+        }
+      },
+      immediate: true, deep: true
+    },
+    'store.ServiceRequestData':{
+      handler(newVal){
+        if( newVal && Object.keys(newVal).length){
+          this.AlertBarActive = true;
+          console.log("ServiceRequestData : ", newVal, this.AlertBarActive);
         }
       },
       immediate: true, deep: true

@@ -1,9 +1,9 @@
 <template>
     <ion-page class="signup-page">
-        <ion-content fullscreen>
+        <ion-content fullscreen color="light">
             <!-- Logo -->
             <div class="logo-wrapper">
-                <img src="../Images/Vector.png" alt="Routewise Logo" class="logo" />
+                <img src="../Images/RouteWise-3D-İcon.png" alt="Routewise Logo" class="logo" />
             </div>
 
             <!-- Başlık -->
@@ -14,35 +14,37 @@
 
             <!-- Form -->
             <form @submit.prevent="onSubmit" class="form">
-                <ion-item class="input-item" lines="none">
-                    <ion-label position="stacked" class="inputLabels">Email Address</ion-label>
-                    <ion-input class="ion-input-ion" v-model="this.store.LoginData.EMailAddress" type="email"
+                <ion-item class="input-container" lines="none">
+                    <!-- <ion-label position="stacked" class="inputLabels">Email Address</ion-label> -->
+                    <ion-input class="custom-input" v-model="this.store.LoginData.EMailAddress" type="email"
                         placeholder="username@example.com" required
                         :disabled="this.store.LoginData.Verified"></ion-input>
                 </ion-item>
 
-                <ion-item class="input-item" lines="none">
-                    <ion-label position="stacked" class="inputLabels">Password</ion-label>
-                    <ion-input 
-                        class="ion-input-ion"
-                        v-model="this.store.LoginData.Password" type="password" placeholder="Password"
-                        minlength="6" required></ion-input>
+                <RequirementContainerVue Type="Login" RequirementType="EMailAddress"
+                    :IsValid="this.store.EMailAddressRegex(this.store.LoginData.EMailAddress)" />
+
+                <ion-item class="input-container" lines="none">
+                    <!-- <ion-label position="stacked" class="inputLabels">Password</ion-label> -->
+                    <ion-input :disabled="this.store.LoginData.Verified" class="custom-input"
+                        v-model="this.store.LoginData.Password" type="password" placeholder="Password" minlength="6"
+                        required>
+                        <ion-input-password-toggle color="danger" slot="end"></ion-input-password-toggle>
+                    </ion-input>
                 </ion-item>
 
+                <RequirementContainerVue Type="Login" RequirementType="Password"
+                    :IsValid="this.store.PasswordRegex(this.store.LoginData.Password)" />
+
                 <ion-item class="input-item remember-item" lines="none">
-                    <ion-checkbox 
-                        color="routematic-red" 
-                        v-model="store.LoginData.IsRemindDeviceActive"
-                        slot="start" 
+                    <ion-checkbox color="routematic-red" v-model="store.LoginData.IsRemindDeviceActive" slot="start"
                         class="remember-checkbox">
                     </ion-checkbox>
-                    
-                    <ion-label class="remember-label">Remember this device</ion-label> 
-                    
-                    <ion-label 
-                        class="remember-label forgot-password-link" 
-                        slot="end"  
-                        @click="goSetPassword()"> Forgot Password ?
+
+                    <ion-label class="remember-label">Remember this device</ion-label>
+
+                    <ion-label class="remember-label forgot-password-link" slot="end" @click="goSetPassword()"> Forgot
+                        Password ?
                     </ion-label>
                 </ion-item>
 
@@ -61,10 +63,11 @@
 
 <script>
 import { UseStore } from '../stores/store';
-import { IonPage, IonContent, IonItem, IonLabel, IonInput, IonButton, IonCheckbox } from '@ionic/vue';
+import { IonPage, IonContent, IonItem, IonLabel, IonInput, IonButton, IonCheckbox, IonInputPasswordToggle } from '@ionic/vue';
 import { Device } from '@capacitor/device';
 import { Preferences } from '@capacitor/preferences';
 import axios from 'axios';
+import RequirementContainerVue from '@/components/RequirementContainer.vue';
 export default {
     components: {
         IonPage,
@@ -73,7 +76,9 @@ export default {
         IonLabel,
         IonInput,
         IonButton,
-        IonCheckbox
+        IonCheckbox,
+        IonInputPasswordToggle,
+        RequirementContainerVue
     },
     setup() {
         const store = UseStore();
@@ -90,8 +95,10 @@ export default {
         if (!this.store.LoginData.Verified) this.store.OnboardingStep = 1;
     },
     methods: {
-        goSetPassword(){
-            this.$router.push({path:'/set/password'});
+        goSetPassword() {
+            var EMailAddress = this.store.LoginData.EMailAddress;
+            if (this.store.EMailAddressRegex(EMailAddress)) this.store.SetPasswordData.EMailAddress = EMailAddress;
+            this.$router.push({ path: '/set/password' });
         },
         async saveRefreshToken(RefreshToken) {
             try {
@@ -103,10 +110,18 @@ export default {
                 console.error('İsim kaydedilirken hata:', error);
             }
         },
+        async deleteRefreshToken() {
+            try {
+                await Preferences.remove({ key: 'RefreshToken' });
+                console.log('Refresh Token başarıyla silindi.');
+            } catch (error) {
+                console.error('Refresh Token silinirken hata:', error);
+            }
+        },
         isValid() {
             var EMailAddress = this.store.LoginData?.EMailAddress;
             var Password = this.store.LoginData.Password;
-            return this.store.EMailAddressRegex(EMailAddress) && Password ? true : false
+            return this.store.EMailAddressRegex(EMailAddress) && this.store.PasswordRegex(Password) ? true : false
         },
         async LoginService() {
             await this.GetDeviceDetails();
@@ -119,9 +134,11 @@ export default {
                     if (res.status === 200) {
                         this.store.UserData = res.data.UserData;
                         this.store.Token = res.data.Token;
-                        if ('RefreshToken' in res.data) {
+                        if ('RefreshToken' in res.data && res.data.RefreshToken) {
                             var RefreshToken = res.data.RefreshToken;
                             this.saveRefreshToken(RefreshToken);
+                        } else {
+                            this.deleteRefreshToken();
                         }
                         this.$router.push({ path: '/Home' });
                     }
@@ -172,14 +189,22 @@ export default {
 </script>
 
 <style scoped>
-.ion-input-ion{
+.input-container {
+    --background: #ffffff;
     --border-radius: 25px;
     --border-color: #e0e0e0;
     --border-width: 1px;
+    --padding-start: 15px;
+    --padding-end: 15px;
+    margin-bottom: 15px;
+    width: 100%;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    --border-style: solid;
 }
-.inputLabels {
-    font-weight: bold;
+
+.custom-input {
+    --placeholder-color: #999;
+    --placeholder-opacity: 1;
 }
 
 .signup-page {
@@ -215,16 +240,6 @@ export default {
     padding: 0 16px;
 }
 
-.input-item {
-    margin-bottom: 16px;
-    --background: transparent;
-}
-
-ion-input {
-    --padding-start: 12px;
-    --padding-end: 12px;
-}
-
 .continue-button {
     --background: #e4002b;
     --border-radius: 24px;
@@ -232,6 +247,7 @@ ion-input {
     margin-top: 16px;
     font-size: 16px;
     font-weight: 500;
+    text-transform: none;
 }
 
 .remember-item {

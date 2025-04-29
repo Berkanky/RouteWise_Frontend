@@ -8,11 +8,9 @@
         <p class="subtitle">Login and unlock smarter travel with Routewise.</p>
 
         <ion-item class="input-container" lines="none">
-          <ion-label position="stacked" class="inputLabels">Email Address</ion-label>
-          <ion-input 
-            class="custom-input"
-            v-model="this.store.SetPasswordData.EMailAddress" type="email"
-            required disabled></ion-input>
+          <!--           <ion-label position="stacked" class="inputLabels">Email Address</ion-label>
+ --> <ion-input class="custom-input" v-model="this.store.SetPasswordData.EMailAddress" type="email" required
+            disabled></ion-input>
         </ion-item>
 
         <ion-item lines="none" class="input-container">
@@ -23,27 +21,23 @@
         </ion-item>
 
         <ion-item lines="none" class="input-container">
-          <ion-input type="password" placeholder="Confirm password" v-model="store.SetPasswordData.PasswordConfirm"
+          <ion-input 
+            @ionInput="validatePasswordConfirm"
+            type="password" placeholder="Confirm password" v-model="store.SetPasswordData.PasswordConfirm"
             class="custom-input">
             <ion-input-password-toggle color="danger" slot="end"></ion-input-password-toggle>
           </ion-input>
         </ion-item>
 
         <div class="requirements-list">
-          <p class="requirement-item requirement-error" v-if="store.SetPasswordData.PasswordConfirm && !passwordsMatch">
-            <ion-icon :icon="closeOutline" style="margin-right:5px;color:red;font-size:15px;"></ion-icon>
-            Passwords do not match.
+          <p v-for="(data, key) in PasswordRegexOptions" :key="key" class="requirement-item"
+            :class="{ 'requirement-valid': data.isValid, 'requirement-invalid-text': !data.isValid }">
+
+            <ion-icon :icon="data.isValid ? checkmarkOutline : closeOutline"
+            :class="data.isValid ? 'ion-icon-requirement-valid' : 'ion-icon-requirement-error'"></ion-icon>
+
+            {{ data.label }}
           </p>
-          <template v-if="store.SetPasswordData.Password">
-            <p v-for="(data, key) in PasswordRegexOptions" :key="key" class="requirement-item"
-              :class="{ 'requirement-valid': data.isValid, 'requirement-invalid-text': !data.isValid }">
-              <ion-icon :icon="checkmarkOutline" v-if="data.isValid"
-                style="margin-right:5px;color:green;font-size:15px;"></ion-icon>
-              <ion-icon :icon="closeOutline" v-if="!data.isValid"
-                style="margin-right:5px;color:red;font-size:15px;"></ion-icon>
-              {{ data.label }}
-            </p>
-          </template>
         </div>
 
         <ion-button :disabled="!isFormValid" expand="block" shape="round"
@@ -100,12 +94,13 @@ export default defineComponent({
         { id: 2, label: 'At least one uppercase letter', isValid: false },
         { id: 3, label: 'At least one lowercase letter', isValid: false },
         { id: 4, label: 'At least one number', isValid: false },
+        { id: 5, label: 'The passwords do not match.', isValid: false },
       ],
     };
   },
   created() {
     this.store.OnboardingStep = 3;
-    
+
     this.store.SetPasswordData.Password = '';
     this.store.SetPasswordData.PasswordConfirm = '';
   },
@@ -127,16 +122,36 @@ export default defineComponent({
     checkUppercase(password) { return /[A-Z]/.test(password); },
     checkLowercase(password) { return /[a-z]/.test(password); },
     checkNumber(password) { return /\d/.test(password); },
+    checkPasswords(password){
+      var passwordConfirm = this.store.SetPasswordData.PasswordConfirm || '';
+      if( password !== '' && passwordConfirm !== '' && password === passwordConfirm) return true;
+      return false;
+    },
+    validatePasswordConfirm(){
+      var Password = this.store.SetPasswordData.Password || '';
+      var PasswordConfirm = this.store.SetPasswordData.PasswordConfirm || '';
+      var IsPasswordConfirmValid = false;
+      if(Password === PasswordConfirm ) IsPasswordConfirmValid = true;
+      console.log("IsPasswordConfirmValid : ", IsPasswordConfirmValid);
+      var findedRegexOption = this.PasswordRegexOptions.find(function(item){ return item.id === 5});
 
+      if( IsPasswordConfirmValid ) {
+        if( findedRegexOption ) findedRegexOption.isValid = true;
+      }
+      else{
+        if( findedRegexOption ) findedRegexOption.isValid = false;
+      }
+    },
     validatePassword() {
       var currentPassword = this.store.SetPasswordData.Password || '';
       this.PasswordRegexOptions = this.PasswordRegexOptions.map(option => {
-        let isValid = false;
+        var isValid = false;
         switch (option.id) {
           case 1: isValid = this.checkMinLength(currentPassword); break;
           case 2: isValid = this.checkUppercase(currentPassword); break;
           case 3: isValid = this.checkLowercase(currentPassword); break;
           case 4: isValid = this.checkNumber(currentPassword); break;
+          case 5: isValid = this.checkPasswords(currentPassword); break;
         }
         return { ...option, isValid: isValid };
       });
@@ -152,24 +167,24 @@ export default defineComponent({
       var Password = this.store.SetPasswordData.Password;
       var PasswordConfirm = this.store.SetPasswordData.PasswordConfirm;
 
-      axios.put(`${ServerRoot}/set/password/${EMailAddress}`, { Password: Password, PasswordConfirm: PasswordConfirm}, {
-        headers:{
-          "Authorization": "Bearer " + Token 
+      axios.put(`${ServerRoot}/set/password/${EMailAddress}`, { Password: Password, PasswordConfirm: PasswordConfirm }, {
+        headers: {
+          "Authorization": "Bearer " + Token
         }
       })
         .then(res => {
           console.log(res);
-          if( res.status === 200) {
+          if (res.status === 200) {
             this.store.LoginData.EMailAddress = EMailAddress;
-            this.$router.push({ path: '/login'});
+            this.$router.push({ path: '/login' });
             this.store.SetPasswordData = {};
-          }else{
+          } else {
             console.log("Şifre yenilenemedi, tekrar deneyiniz. ");
           }
         })
         .catch(err => {
           console.log(err);
-          if( err.status === 504) return this.SetPasswordComplete();
+          if (err.status === 504) return this.SetPasswordComplete();
         })
     }
   },
@@ -196,7 +211,6 @@ export default defineComponent({
   width: 80px;
   height: auto;
   margin-bottom: 30px;
-  margin-top: 70px;
 }
 
 .title {
@@ -226,7 +240,6 @@ export default defineComponent({
   width: 100%;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
   --border-style: solid;
-  /* Kenarlık için stil eklendi */
 }
 
 .custom-input {
@@ -250,17 +263,29 @@ export default defineComponent({
   align-items: center;
 }
 
-.requirement-valid {
-  color: green;
-}
-
 .requirement-invalid-text {
   color: #888;
+}
+
+.requirement-valid {
+  color: green;
 }
 
 .requirement-error {
   color: red;
   font-weight: bold;
+}
+
+.ion-icon-requirement-valid {
+  margin-right: 5px;
+  color: green;
+  font-size: 15px;
+}
+
+.ion-icon-requirement-error {
+  margin-right: 5px;
+  color: red;
+  font-size: 15px;
 }
 
 .continue-button {

@@ -14,21 +14,45 @@ export const UseStore = defineStore("UseStore", {
     SetPasswordData: {},
 
     Token: '',
-    ServerRoot: "https://routewisebackend-production.up.railway.app",
+    ServerRoot: 'https://api.routewiseapp.com', //"https://routewisebackend-production.up.railway.app",
 
     OnboardingStep:1,
     AppStarted: false,
 
-    VerificationPageType:''
+    VerificationPageType:'',
+
+    ServiceRequestData:{}
   }),
   actions: {
+    WatchServices() {
+
+      axios.interceptors.request.use(
+        (config) => {
+          return config;
+        },
+        (err) => {
+          return Promise.reject(err);
+        }
+      );
+
+      axios.interceptors.response.use(
+        (res) => {
+          this.ServiceRequestData.message = res.data.message;
+          this.ServiceRequestData.status = res.status;
+
+          return res;
+        },
+        (err) => {
+
+          this.ServiceRequestData.message = err.response?.data?.message ?? err.message ?? 'Error, please try again.';
+          this.ServiceRequestData.status = err.response?.status ?? 500;
+
+          return Promise.reject(err);
+        }
+      );
+    },
     ResetPiniaStore() {
       this.$reset();
-    },
-    EMailAddressRegex(EMailAddress) {
-      var EMailAddressRegex =
-        /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/; //RFC5322
-      return EMailAddressRegex.test(EMailAddress);
     },
     RegisterEmailVerificationSend() {
       
@@ -88,7 +112,12 @@ export const UseStore = defineStore("UseStore", {
     PasswordRegex(Password){
       var pattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
       return pattern.test(Password);
-    }
+    },
+    EMailAddressRegex(EMailAddress) {
+      var EMailAddressRegex =
+        /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/; //RFC5322
+      return EMailAddressRegex.test(EMailAddress);
+    },
   },
   persist: {
     storage: sessionStorage,

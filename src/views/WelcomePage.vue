@@ -3,7 +3,7 @@
     <ion-content fullscreen color="light" class="welcome-content">
 
       <div class="logo-section ion-padding-top ion-text-center">
-        <img src="../Images/Vector.png" alt="Logo" class="logo" />
+        <img src="../Images/RouteWise-3D-İcon.png" alt="Logo" class="logo" />
         <h1 class="title">RouteWise</h1>
         <p class="subtitle">Plan smarter journeys, save on every mile with RouteWise.</p>
       </div>
@@ -24,6 +24,7 @@
 </template>
 
 <script>
+
 import {
   IonPage,
   IonContent,
@@ -38,7 +39,7 @@ export default {
   components: {
     IonPage,
     IonContent,
-    IonButton
+    IonButton,
   },
   setup() {
     const store = UseStore();
@@ -52,7 +53,7 @@ export default {
     }
   },
   created(){
-    //
+    //this.store.ResetPiniaStore();
   },
   mounted(){
     if( this.store.AppStarted && !this.store.DeviceId) this.GetDeviceId();

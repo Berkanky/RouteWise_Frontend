@@ -42,6 +42,7 @@ export default {
                     this.seconds = 59;
                 } else {
                     clearInterval(this.timerId);
+                    this.$emit("VerificationIdExpired", true);
                 }
             }, 1000);
         }
@@ -55,7 +56,6 @@ export default {
     watch: {
         VerifySendedCount(newVal) {
             if (newVal != null) {
-                // Prop her değiştiğinde sayacı sıfırla ve yeniden başlat
                 this.Reset();
             }
         }

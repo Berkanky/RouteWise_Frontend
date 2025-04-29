@@ -71,15 +71,12 @@
   }
   .step-fill {
     height: 100%;
-    border-radius: 4px;
-    background: #F4F3F3;
+    background: #fff;
     transition: width 0.3s ease;
   }
   .step-fill-active {
     height: 100%;
-    border-radius: 4px;
     background: #D10000;
     transition: width 0.3s ease;
   }
   </style>
-  

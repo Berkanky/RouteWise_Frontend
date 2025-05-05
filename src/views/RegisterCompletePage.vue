@@ -14,7 +14,7 @@
 
             <!-- Form -->
             <form @submit.prevent="onSubmit" class="form">
-
+                
                 <ion-item class="input-container" lines="none">
                     <!-- <ion-label position="stacked" class="inputLabels">Email Address</ion-label> -->
                     <ion-input class="custom-input" v-model="this.store.RegisterData.EMailAddress" type="email"
@@ -51,6 +51,53 @@
                     :IsValid="this.store.PasswordRegex(this.store.RegisterData.PasswordConfirm)"
                 />
 
+                <div>
+                    <ion-item v-if="this.PhoneNumberVerifyActive" class="input-container" lines="none" style="margin-top:16px;">
+                        <ion-input 
+                            
+                            v-model="this.VerificationId" type="tel" inputmode="numeric" maxlength="6"
+                            placeholder="Enter digit code." class="custom-input" />
+                    </ion-item>
+                    <PhoneNumberInput Type="Register" v-if="!this.PhoneNumberVerifyActive && !this.PhoneNumberVerified"/>
+
+                    <ion-item v-if="this.PhoneNumberVerified" class="input-container" lines="none" style="margin-top:16px;">
+                        <ion-input 
+                            :placeholder="this.store.RegisterData.DialCode + this.store.RegisterData.PhoneNumber"
+                            class="custom-input" />
+                    </ion-item>
+
+                    <div class="requirements-list" v-if="this.PhoneNumberVerified">
+                        <p class="requirement-item requirement-valid">
+                            <ion-icon 
+                                :icon="checkmarkOutline"
+                                class="ion-icon-requirement-valid"
+                            ></ion-icon>
+                            The phone number was successfully confirmed.
+                        </p>
+                    </div>
+
+                    <div class="button-container" v-if="!this.PhoneNumberVerified">
+
+                        <ion-button 
+                            v-if="!this.PhoneNumberVerifyActive"
+                            v-on:click="this.SendSMSVerification();"
+                            :disabled="!this.store.PhoneNumberRegex(this.store.RegisterData.DialCode, this.store.RegisterData.PhoneNumber)" 
+                            :color="this.store.PhoneNumberRegex(this.store.RegisterData.DialCode, this.store.RegisterData.PhoneNumber) ? 'danger' : 'light'" 
+                            style="margin-right: 10px;width:100%;">Verify</ion-button>
+                        
+                            <ion-button 
+                            :disabled="!this.store.isValid(this.VerificationId)"
+                            v-if="this.PhoneNumberVerifyActive"
+                            v-on:click="this.confirmPhoneNumber()"
+                            color="danger" style="width:100%;">Confirm</ion-button>
+                        
+                        <ion-button 
+                            v-if="this.PhoneNumberVerifyActive"
+                            v-on:click="this.cancelPhoneVerification()"
+                            color="danger" style="width:100%;">Cancel</ion-button>
+                    </div>
+                </div>
+
                 <ion-item class="input-container" lines="none">
                     <!-- <ion-label position="stacked" class="inputLabels">Name</ion-label> -->
                     <ion-input class="custom-input" :disabled="this.IsRegisterCompleted"
@@ -60,15 +107,17 @@
 
                 <ion-item class="input-container" lines="none">
                     <!-- <ion-label position="stacked" class="inputLabels">Surname</ion-label> -->
-                    <ion-input class="custom-input" :disabled="this.IsRegisterCompleted"
+                    <ion-input 
+                        
+                        class="custom-input" :disabled="this.IsRegisterCompleted"
                         v-model="this.store.RegisterData.Surname" type="text" placeholder="Last Name" minlength="6"
                         required></ion-input>
                 </ion-item>
-
+                
                 <ion-button v-if="!this.IsRegisterCompleted" v-on:click="this.CompleteRegister()" type="submit"
                     expand="block" :class="this.isValid() ? 'continue-button' : 'continue-button-disabled'"
                     :disabled="!this.isValid()">
-                    complete
+                    Complete
                 </ion-button>
             </form>
         </ion-content>
@@ -76,7 +125,10 @@
 </template>
 
 <script>
+import { closeOutline, checkmarkOutline } from 'ionicons/icons';
+
 import RequirementContainerVue from '@/components/RequirementContainer.vue';
+import PhoneNumberInput from '../components/PhoneNumberInput.vue';
 
 import { UseStore } from '../stores/store';
 import {
@@ -86,7 +138,8 @@ import {
     IonLabel,
     IonInput,
     IonButton,
-    IonInputPasswordToggle
+    IonInputPasswordToggle,
+    IonIcon
 } from '@ionic/vue';
 import axios from 'axios';
 export default {
@@ -98,23 +151,49 @@ export default {
         IonInput,
         IonButton,
         IonInputPasswordToggle,
-        RequirementContainerVue
+        RequirementContainerVue,
+        PhoneNumberInput,
+        IonIcon
     },
     setup() {
         const store = UseStore();
         return {
-            store
+            store,
+            closeOutline, 
+            checkmarkOutline
         }
     },
     data: function () {
         return {
             IsRegisterCompleted: false,
+            PhoneNumberVerifyActive: false,
+            VerificationId: '',
+            PhoneNumberVerified: false
         }
     },
     created() {
         this.store.OnboardingStep = 3;
+        this.store.RegisterData.VerifySended = false;
+        this.store.RegisterData.Verified = false;
     },
     methods: {
+        confirmPhoneNumber(){
+            
+            var EMailAddress = this.store.RegisterData.EMailAddress;
+            var PhoneNumber = this.store.RegisterData.PhoneNumber;
+            var DialCode = this.store.RegisterData.DialCode;
+            var Type = 'Register';
+            var VerificationCode = this.VerificationId;
+
+            this.store.SMSVerify({EMailAddress: EMailAddress, PhoneNumber: PhoneNumber, DialCode: DialCode, Type: Type, VerificationCode: VerificationCode});
+        },
+        cancelPhoneVerification(){
+            this.store.RegisterData.VerifySended = false;
+        },
+        SendSMSVerification(){
+            var Type = 'Register';
+            this.store.SMSVerificationSend(Type);
+        },
         IsPasswordConfirmRegex() {
             var PasswordConfirm = this.store.RegisterData?.PasswordConfirm;
             var isPasswordConfirmRegex = this.store.PasswordRegex(PasswordConfirm);
@@ -130,6 +209,9 @@ export default {
         goLoginPage() {
             this.store.LoginData.EMailAddress = this.store.RegisterData.EMailAddress;
             this.store.LoginData.Password = this.store.RegisterData.Password;
+
+            this.store.RegisterData = {};
+
             this.$router.push({ path: '/login' });
         },
         async CompleteRegister() {
@@ -153,11 +235,31 @@ export default {
             if (Name && Surname && this.IsPasswordValid()) return true
             return false
         },
+    },
+    watch:{
+        'store.RegisterData':{
+            handler(newVal){
+                if( 'VerifySended' in newVal && newVal["VerifySended"] === true) this.PhoneNumberVerifyActive = true;
+                else this.PhoneNumberVerifyActive = false;
+
+                if( 'Verified' in newVal && newVal['Verified'] === true ) this.PhoneNumberVerified = true;
+                else this.PhoneNumberVerified = false;
+            },
+            immediate: true, deep: true
+        }
     }
 }
 </script>
 
 <style scoped>
+.button-container {
+  display: flex;
+  justify-content: center; 
+  align-items: center;
+  height: 100%;
+  margin-bottom:15px;
+}
+
 .input-container {
     --background: #ffffff;
     --border-radius: 25px;
@@ -239,4 +341,35 @@ export default {
     font-weight: 500;
     text-transform: none;
 }
+
+.requirements-list {
+    width: 100%;
+    padding-left: 15px;
+    margin-top: 5px;
+    margin-bottom: 30px;
+}
+
+.requirement-item {
+    font-size: 0.8em;
+    color: #888;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+}
+
+.requirement-invalid-text {
+    color: #888;
+}
+.requirement-valid {
+    color: green;
+}
+
+
+.ion-icon-requirement-valid {
+    margin-right:5px;
+    color:green;
+    font-size:15px;
+}
+
 </style>

@@ -17,7 +17,7 @@
                 <ion-item class="input-container" lines="none">
                     <!-- <ion-label position="stacked" class="inputLabels">Email Address</ion-label> -->
                     <ion-input class="custom-input" v-model="this.store.LoginData.EMailAddress" type="email"
-                        placeholder="username@example.com" required
+                        placeholder="Email" required
                         :disabled="this.store.LoginData.Verified"></ion-input>
                 </ion-item>
 
@@ -29,7 +29,7 @@
                     <ion-input :disabled="this.store.LoginData.Verified" class="custom-input"
                         v-model="this.store.LoginData.Password" type="password" placeholder="Password" minlength="6"
                         required>
-                        <ion-input-password-toggle color="danger" slot="end"></ion-input-password-toggle>
+                        <ion-input-password-toggle color="medium" slot="end"></ion-input-password-toggle>
                     </ion-input>
                 </ion-item>
 
@@ -43,15 +43,40 @@
 
                     <ion-label class="remember-label">Remember this device</ion-label>
 
-                    <ion-label class="remember-label forgot-password-link" slot="end" @click="goSetPassword()"> Forgot
+                    <ion-label 
+                        v-if="!this.store.LoginData.Verified"
+                        class="remember-label forgot-password-link" slot="end" @click="goSetPassword()"> Forgot
                         Password ?
                     </ion-label>
                 </ion-item>
 
-                <ion-button v-if="!this.store.LoginData.Verified" v-on:click="this.store.LoginEmailVerificationSend()"
-                    type="submit" expand="block" class="continue-button" :disabled="!isValid()">
-                    Continue
-                </ion-button>
+                <div v-if="!this.store.LoginData.Verified">
+
+                   <!--  <div class="button-container">
+                        <ion-button  
+                            v-on:click="this.store.SMSVerificationSend('Login');this.EMailAddressVerificationActive=false;"
+                            type="submit" expand="block" class="phone-verification-button" :disabled="!isValid()">
+                                <ion-icon :icon="callOutline" slot="start"></ion-icon>
+                                SMS
+                        </ion-button>
+                        <ion-button  
+                            v-on:click="this.store.LoginEmailVerificationSend();this.EMailAddressVerificationActive=true;"
+                            type="submit" expand="block" class="email-verification-button" :disabled="!isValid()">
+                                <ion-icon :icon="mailOpenOutline" slot="start"></ion-icon>
+                                Email
+                        </ion-button>
+                    </div> -->
+                    
+                    <ion-button 
+                        :disabled="!isValid()"
+                        v-on:click="goVerificationOptionsPage()" 
+                        type="submit"
+                        expand="block" class="continue-button"
+                    >
+                        Continue
+                    </ion-button>
+                    
+                </div>
                 <ion-button v-if="this.store.LoginData.Verified" v-on:click="this.LoginService()" type="submit"
                     expand="block" class="continue-button" :disabled="!isValid()">
                     Login
@@ -62,6 +87,7 @@
 </template>
 
 <script>
+import { callOutline, mailOpenOutline } from 'ionicons/icons';
 import { UseStore } from '../stores/store';
 import { IonPage, IonContent, IonItem, IonLabel, IonInput, IonButton, IonCheckbox, IonInputPasswordToggle } from '@ionic/vue';
 import { Device } from '@capacitor/device';
@@ -83,18 +109,42 @@ export default {
     setup() {
         const store = UseStore();
         return {
-            store
+            store,
+            callOutline,
+            mailOpenOutline
         }
     },
     data: function () {
         return {
-
+            EMailAddressVerificationActive: true,
         }
     },
     created() {
         if (!this.store.LoginData.Verified) this.store.OnboardingStep = 1;
     },
     methods: {
+        goVerificationOptionsPage(){
+            var ServerRoot = this.store.ServerRoot;
+            var LoginData = this.store.LoginData;
+            var EMailAddress = LoginData.EMailAddress;
+
+            var Type = 'Login';
+
+            axios.put(`${ServerRoot}/password/check/${EMailAddress}`, { LoginData: LoginData }, {})
+                .then(res => {
+                    console.log(res);
+                    if( res.status === 200) {
+                        this.store.LoginData.PhoneNumber = res.data.PhoneNumber;
+                        this.store.LoginData.DialCode = res.data.DialCode;
+                        
+                        this.$router.push({ path:'/verification/options/' + EMailAddress + '/' + Type});
+                    }
+                })
+                .catch(err => {
+                    console.log(err);
+                    if( err.status === 504) this.goVerificationOptionsPage();
+                })
+        },
         goSetPassword() {
             var EMailAddress = this.store.LoginData.EMailAddress;
             if (this.store.EMailAddressRegex(EMailAddress)) this.store.SetPasswordData.EMailAddress = EMailAddress;
@@ -175,12 +225,13 @@ export default {
             handler(newVal) {
 
                 var Type = 'Login';
+                var VerificationType = this.EMailAddressVerificationActive ? 'Email' : 'SMS';
 
-                if (newVal && 'VerifySended' in newVal && newVal['VerifySended']) {
-                    this.$router.push({ path: "/verification/" + this.store.LoginData.EMailAddress + "/" + Type });
+                if ( 'VerifySended' in newVal && newVal['VerifySended'] === true) {
+                    this.$router.push({ path: "/verification/" + this.store.LoginData.EMailAddress + "/" + Type + '/' + VerificationType});
                 }
 
-                if (newVal && 'Verified' in newVal && newVal['Verified']) this.store.OnboardingStep = 3;
+                if ('Verified' in newVal && newVal['Verified']) this.store.OnboardingStep = 3;
             },
             immediate: true, deep: true
         }
@@ -189,6 +240,14 @@ export default {
 </script>
 
 <style scoped>
+.button-container {
+  display: flex;
+  justify-content: center; 
+  align-items: center;
+  height: 100%;
+  margin-bottom:15px;
+}
+
 .input-container {
     --background: #ffffff;
     --border-radius: 25px;
@@ -213,7 +272,6 @@ export default {
 
 .logo-wrapper {
     text-align: center;
-    margin-top: 60px;
 }
 
 .logo {
@@ -248,6 +306,26 @@ export default {
     font-size: 16px;
     font-weight: 500;
     text-transform: none;
+}
+
+.email-verification-button {
+    --background: #e4002b;
+    --border-radius: 24px;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 500;
+    text-transform: none;
+    width:100%;
+}
+
+.phone-verification-button {
+    --background: #e4002b;
+    --border-radius: 24px;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 500;
+    text-transform: none;
+    width:100%;
 }
 
 .remember-item {

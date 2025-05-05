@@ -5,18 +5,17 @@
         <ion-img :src="SetPasswordLogo" alt="Lock Icon" class="lock-icon"></ion-img>
 
         <h1 class="title">Secure your journey</h1>
-        <p class="subtitle">Login and unlock smarter travel with Routewise.</p>
+        <p class="subtitle">Reset your password and unlock smarter travel with Routewise.</p>
 
         <ion-item class="input-container" lines="none">
-          <!--           <ion-label position="stacked" class="inputLabels">Email Address</ion-label>
- --> <ion-input class="custom-input" v-model="this.store.SetPasswordData.EMailAddress" type="email" required
+          <ion-input class="custom-input" v-model="this.store.SetPasswordData.EMailAddress" type="email" required
             disabled></ion-input>
         </ion-item>
 
         <ion-item lines="none" class="input-container">
           <ion-input type="password" placeholder="Enter your new password" v-model="store.SetPasswordData.Password"
             @ionInput="validatePassword" class="custom-input">
-            <ion-input-password-toggle color="danger" slot="end"></ion-input-password-toggle>
+            <ion-input-password-toggle color="medium" slot="end"></ion-input-password-toggle>
           </ion-input>
         </ion-item>
 
@@ -25,7 +24,7 @@
             @ionInput="validatePasswordConfirm"
             type="password" placeholder="Confirm password" v-model="store.SetPasswordData.PasswordConfirm"
             class="custom-input">
-            <ion-input-password-toggle color="danger" slot="end"></ion-input-password-toggle>
+            <ion-input-password-toggle color="medium" slot="end"></ion-input-password-toggle>
           </ion-input>
         </ion-item>
 
@@ -176,8 +175,8 @@ export default defineComponent({
           console.log(res);
           if (res.status === 200) {
             this.store.LoginData.EMailAddress = EMailAddress;
-            this.$router.push({ path: '/login' });
             this.store.SetPasswordData = {};
+            this.$router.push({ path: '/login' });
           } else {
             console.log("Şifre yenilenemedi, tekrar deneyiniz. ");
           }
@@ -208,7 +207,7 @@ export default defineComponent({
 }
 
 .lock-icon {
-  width: 80px;
+  width: 100px;
   height: auto;
   margin-bottom: 30px;
 }

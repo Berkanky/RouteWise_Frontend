@@ -28,7 +28,7 @@
                 :icon="closeOutline"
                 class="ion-icon-requirement-error"
             ></ion-icon>
-            The passwords you have entered do not match, please make sure that you have entered the password again correctly.
+            Make sure that you have entered the password correctly.
         </p>
     </div>
 </template>
@@ -79,18 +79,20 @@ export default {
         }
     },
     created() {
-        var EMailAddress, message;
+        var message;
+        //var EMailAddress;
 
-        if ( this.Type === "Login") EMailAddress = this.store.LoginData.EMailAddress;
+      /*   if ( this.Type === "Login") EMailAddress = this.store.LoginData.EMailAddress;
         if ( this.Type === "Register") EMailAddress = this.store.RegisterData.EMailAddress;
-        if( this.Type === "RegisterComplete") EMailAddress = this.store.RegisterData.EMailAddress;
+        if ( this.Type === "RegisterComplete") EMailAddress = this.store.RegisterData.EMailAddress;
         if ( this.Type === "setPassword") EMailAddress = this.store.SetPasswordData.EMailAddress;
-
+ */
         if( this.RequirementType === "EMailAddress") message = "Please enter a valid email address.";
         if( this.RequirementType === "Password") message = "Please enter a valid password. ";
         if( this.RequirementType === "PasswordConfirm") message = "Please enter a valid password. ";
+        if( this.RequirementType === "PhoneNumber") message = "Please enter a valid phone number. ";
 
-        this.EMailAddress = EMailAddress; 
+        //this.EMailAddress = EMailAddress; 
         this.message = message;
     }
 }

@@ -1,14 +1,20 @@
 <template>
-  <div>
+  <ion-page>
     home page
 
     {{ JSON.stringify(this.store.UserData) }}
-  </div>
+  </ion-page>
 </template>
 
 <script>
+import {
+  IonPage,
+} from '@ionic/vue';
 import {UseStore} from '../stores/store';
 export default {
+  components:{
+    IonPage
+  },
   setup(){
     const store = UseStore();
     return{

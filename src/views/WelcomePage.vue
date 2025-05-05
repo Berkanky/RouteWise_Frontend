@@ -15,7 +15,7 @@
       <div class="action-section ion-padding">
         <ion-button expand="block" class="get-started" @click="goRegisterPage()">Get Started</ion-button>
         <p class="login-link ion-text-center">
-          Already have an account? <router-link to="/login" @click="GoLoginPage()">Login</router-link>
+          Already have an account? <router-link @click="GoLoginPage()">Login</router-link>
         </p>
       </div>
 
@@ -73,7 +73,7 @@ export default {
       this.CheckRefreshToken(DeviceId);
     },
     AutoLoginService(DeviceId, RefreshToken){
-      console.log(JSON.stringify({ DeviceId, RefreshToken}));
+
       var ServerRoot = this.store.ServerRoot;
       axios.put(`${ServerRoot}/auto/login`, { DeviceId:  DeviceId, Token: RefreshToken}, {})
         .then( res => {
@@ -81,7 +81,7 @@ export default {
           if(res.status === 200){
             this.store.Token = res.data.Token;
             this.store.UserData = res.data.Auth;
-            this.$router.replace({ path:'/Home'});
+            this.$router.push({path:'/Home'});
           }
         })
         .catch(err => {
@@ -101,8 +101,7 @@ export default {
         console.error('Refresh token yakalanamadı. ', error);
       }
     },
-  },
-
+  }
 }
 </script>
 

@@ -42,7 +42,7 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import ('../views/WelcomePage.vue')
   },
   {
-    path: '/verification/:EMailAddress/:Type',
+    path: '/verification/:EMailAddress/:Type/:VerificationType',
     name: 'verification',
     component: () => import ('../views/VerificationPage.vue')
   },
@@ -50,6 +50,12 @@ const routes: Array<RouteRecordRaw> = [
     path: '/register/complete',
     name: 'registerComplete',
     component: () => import ('../views/RegisterCompletePage.vue')
+  },
+  
+  {
+    path: '/verification/options/:EMailAddress/:Type',
+    name: 'verificationOptions',
+    component: () => import ('../views/VerificationOptions.vue')
   }
 ]
 

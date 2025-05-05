@@ -9,36 +9,48 @@
 
             </div>
             <div class="text-section-target">
-                <h1 class="title-target">Enter the Code</h1>
-                <p class="subtitle-target">We’ve sent a 6‑digit code to your email.</p>
+                <h1 class="title-target">Verification Code</h1>
+                <p class="subtitle-target">We’ve sent a 6‑digit code to your <span> {{ this.VerificationType === 'SMS' ? 'SMS'  : 'Email' }} </span> .</p>
             </div>
 
-            <ion-item class="input-container" lines="none">
-                <ion-input 
-                    v-model="this.EMailAddress" type="email"
-                    placeholder="username@example.com" disabled required class="custom-input">
+            <ion-item class="input-container" lines="none" v-if="this.VerificationType == 'Email'">
+                <ion-input v-model="this.EMailAddress" type="email" placeholder="username@example.com" disabled required
+                    class="custom-input">
                 </ion-input>
+            </ion-item>
+            <ion-item class="input-container" lines="none" v-if="this.VerificationType == 'SMS'">
+                <ion-input class="custom-input"
+                    :placeholder="this.DialCode + this.PhoneNumber" type="tel"
+                    disabled></ion-input>
             </ion-item>
 
             <ion-item class="input-container" lines="none" style="margin-top:16px;">
                 <ion-input v-model="this.VerificationId" type="tel" inputmode="numeric" maxlength="6"
-                    placeholder="Enter digit code." class="custom-input" />
+                    placeholder="Verification code" class="custom-input" />
             </ion-item>
 
             <div class="requirements-list">
-                <p class="requirement-item requirement-error"
-                    v-if="!this.VerificationActive">
+                <p class="requirement-item requirement-error" v-if="!this.VerificationActive">
                     <ion-icon :icon="closeOutline" style="margin-right:5px;color:red;font-size:15px;"></ion-icon>
                     The verification code has expired, please send the code again.
                 </p>
-                <p class="requirement-item requirement-error"
-                    v-if="!this.isValid()">
+                <p class="requirement-item requirement-error" v-if="!this.isValid()">
                     <ion-icon :icon="closeOutline" style="margin-right:5px;color:red;font-size:15px;"></ion-icon>
                     Please enter a valid code.
                 </p>
             </div>
 
-            <div class="buttons-row-target">
+            <div class="buttons-row-target" v-if="this.VerificationType == 'Email'">
+                <ion-button expand="block" class="next-btn-target" @click="this.ResendVerificationId()">
+                    Resend
+                </ion-button>
+
+                <ion-button expand="block" class="next-btn-target"
+                    :disabled="!this.isValid() || !this.VerificationActive" @click="this.ConfirmVerificationId()">
+                    Next
+                </ion-button>
+            </div>
+            <div class="buttons-row-target" v-if="this.VerificationType == 'SMS'">
                 <ion-button expand="block" class="next-btn-target" @click="this.ResendVerificationId()">
                     Resend
                 </ion-button>
@@ -98,6 +110,10 @@ export default defineComponent({
             VerifySended: false,
             VerifySendedCount: 0,
             VerificationActive: true,
+            VerificationType: '',
+            Verified: false,
+            DialCode:'',
+            PhoneNumber: ''
         };
     },
     methods: {
@@ -110,57 +126,76 @@ export default defineComponent({
         },
         ResendVerificationId() {
             var Type = this.Type;
-
-            if (Type === 'Login') return this.store.LoginEmailVerificationSend();
-            if (Type === 'Register') return this.store.RegisterEmailVerificationSend();
-            if (Type === 'setPassword') return this.store.SetPasswordEmailVerificationSend();
+            var VerificationType = this.VerificationType;
+            
+            if (VerificationType === "Email") {
+                if (Type === 'Login') return this.store.LoginEmailVerificationSend();
+                if (Type === 'Register') return this.store.RegisterEmailVerificationSend();
+                if (Type === 'setPassword') return this.store.SetPasswordEmailVerificationSend();
+            } else if (VerificationType === "SMS") {
+                
+                this.store.SMSVerificationSend(this.Type);
+            }
         },
         ConfirmVerificationId() {
             if (this.isValid) {
                 var ServerRoot = this.store.ServerRoot;
                 var EMailAddress = this.EMailAddress;
                 var Type = this.Type;
-                if (Type === 'Register') {
-                    axios.post(`${ServerRoot}/register/email/verification/confirm/${EMailAddress}`, { VerificationId: this.VerificationId })
-                        .then(res => {
-                            console.log(res);
-                            if (res.status === 200) this.$router.push({ path: '/register/complete' });
-                        })
-                        .catch(err => {
-                            console.log(err);
-                            if (err.status === 504) return this.ConfirmVerificationId();
-                        })
-                }
-                if (Type === 'Login') {
-                    axios.post(`${ServerRoot}/login/email/verification/confirm/${EMailAddress}`, { VerificationId: this.VerificationId })
-                        .then(res => {
-                            console.log(res);
-                            if (res.status === 200) {
-                                this.store.LoginData.Verified = true;
-                                this.store.LoginData.VerifySended = false;
-                                this.$router.push({ path: '/login' });
-                            }
-                        })
-                        .catch(err => {
-                            console.log(err);
-                            if (err.status === 504) return this.ConfirmVerificationId();
-                        })
-                }
-                if (Type === 'setPassword') {
-                    axios.post(`${ServerRoot}/set/password/email/confirm/${EMailAddress}`, { VerificationId: this.VerificationId })
-                        .then(res => {
-                            console.log(res);
-                            if (res.status === 200) {
-                                this.store.SetPasswordData.Verified = true;
-                                this.store.SetPasswordData.VerifySended = false;
-                                this.store.Token = res.data.Token;
-                                this.$router.push({ path: '/set/password/complete' });
-                            }
-                        })
-                        .catch(err => {
-                            console.log(err);
-                            if (err.status === 504) return this.ConfirmVerificationId();
-                        })
+                var VerificationType = this.VerificationType;
+
+                if (VerificationType == 'Email') {
+                    if (Type === 'Register') {
+                        axios.post(`${ServerRoot}/register/email/verification/confirm/${EMailAddress}`, { VerificationId: this.VerificationId })
+                            .then(res => {
+                                console.log(res);
+                                this.store.RegisterData.VerifySended     = false;
+                                this.store.RegisterData.Verified = true;
+                                //if (res.status === 200) this.$router.push({ path: '/register/complete' });
+                            })
+                            .catch(err => {
+                                console.log(err);
+                                if (err.status === 504) return this.ConfirmVerificationId();
+                            })
+                    }
+                    if (Type === 'Login') {
+                        axios.post(`${ServerRoot}/login/email/verification/confirm/${EMailAddress}`, { VerificationId: this.VerificationId })
+                            .then(res => {
+                                console.log(res);
+                                if (res.status === 200) {
+                                    this.store.LoginData.Verified = true;
+                                    this.store.LoginData.VerifySended = false;
+                                    //this.$router.push({ path: '/login' });
+                                }
+                            })
+                            .catch(err => {
+                                console.log(err);
+                                if (err.status === 504) return this.ConfirmVerificationId();
+                            })
+                    }
+                    if (Type === 'setPassword') {
+                        axios.post(`${ServerRoot}/set/password/email/confirm/${EMailAddress}`, { VerificationId: this.VerificationId })
+                            .then(res => {
+                                console.log(res);
+                                if (res.status === 200) {
+                                    this.store.SetPasswordData.Verified = true;
+                                    this.store.SetPasswordData.VerifySended = false;
+                                    this.store.Token = res.data.Token;
+                                    //this.$router.push({ path: '/set/password/complete' });
+                                }
+                            })
+                            .catch(err => {
+                                console.log(err);
+                                if (err.status === 504) return this.ConfirmVerificationId();
+                            })
+                    }
+                }else if( VerificationType == 'SMS'){
+
+                    var PhoneNumber = this.PhoneNumber;
+                    var DialCode = this.DialCode;
+                    var VerificationCode = this.VerificationId;
+                    
+                    this.store.SMSVerify({ EMailAddress: this.EMailAddress, Type: Type, PhoneNumber: PhoneNumber, DialCode: DialCode, VerificationCode: VerificationCode});
                 }
             }
         },
@@ -170,40 +205,67 @@ export default defineComponent({
         },
     },
     created() {
-        var { EMailAddress, Type } = this.$route.params;
+        var { EMailAddress, Type, VerificationType } = this.$route.params;
         this.EMailAddress = EMailAddress;
 
-        this.store.VerificationPageType = Type;
         this.Type = Type;
+        this.VerificationType = VerificationType;
 
         this.store.OnboardingStep = 2;
 
         this.VerificationActive = true;
+
+        if( Type == 'Login') {
+            this.PhoneNumber = this.store.LoginData.PhoneNumber;
+            this.DialCode = this.store.LoginData.DialCode;
+        }
+
+        else if( Type == 'Register') {
+            this.PhoneNumber = this.store.RegisterData.PhoneNumber;
+            this.DialCode = this.store.RegisterData.DialCode;
+        }
+
+        else if( Type == 'setPassword'){
+            this.PhoneNumber = this.store.SetPasswordData.PhoneNumber;
+            this.DialCode = this.store.SetPasswordData.DialCode;
+        }
     },
     watch: {
         'store.SetPasswordData': {
             handler(newVal) {
-                if (newVal && 'VerifySended' in newVal && newVal["VerifySended"]) {
+                if( newVal && 'VerifySended' in newVal && newVal["VerifySended"]) {
                     this.VerifySended = true;
                     this.VerifySendedCount = this.VerifySendedCount + 1;
+                }
+
+                if( newVal && 'Verified' in newVal && newVal['Verified']){
+                    this.$router.push({ path: '/set/password/complete' });
                 }
             },
             immediate: true, deep: true
         },
         'store.RegisterData': {
             handler(newVal) {
-                if (newVal && 'VerifySended' in newVal && newVal["VerifySended"]) {
+                if( newVal && 'VerifySended' in newVal && newVal["VerifySended"]) {
                     this.VerifySended = true;
                     this.VerifySendedCount = this.VerifySendedCount + 1;
+                }
+
+                if( newVal && 'Verified' in newVal && newVal['Verified']){
+                    this.$router.push({ path: '/register/complete' });
                 }
             },
             immediate: true, deep: true
         },
         'store.LoginData': {
             handler(newVal) {
-                if (newVal && 'VerifySended' in newVal && newVal["VerifySended"]) {
+                if( newVal && 'VerifySended' in newVal && newVal["VerifySended"]) {
                     this.VerifySended = true;
                     this.VerifySendedCount = this.VerifySendedCount + 1;
+                }
+                
+                if( newVal && 'Verified' in newVal && newVal['Verified']){
+                    this.$router.push({ path: '/login' });
                 }
             },
             immediate: true, deep: true
@@ -213,7 +275,6 @@ export default defineComponent({
 </script>
 
 <style scoped>
-
 .input-container {
     --background: #ffffff;
     --border-radius: 25px;
@@ -228,17 +289,16 @@ export default defineComponent({
 }
 
 .custom-input {
-  --placeholder-color: #999;
-  --placeholder-opacity: 1;
+    --placeholder-color: #999;
+    --placeholder-opacity: 1;
 }
 
 .logo-wrapper {
     text-align: center;
-    margin-top: 60px;
 }
 
 .logo {
-    width: 100px;
+    width: 130px;
     height: auto;
 }
 
@@ -357,32 +417,31 @@ ion-toolbar {
 }
 
 .requirements-list {
-  width: 100%;
-  padding-left: 15px;
-  margin-top: 5px;
-  margin-bottom: 30px;
+    width: 100%;
+    padding-left: 15px;
+    margin-top: 5px;
+    margin-bottom: 30px;
 }
 
 .requirement-item {
-  font-size: 0.8em;
-  color: #888;
-  margin-top: 5px;
-  margin-bottom: 5px;
-  display: flex;
-  align-items: center;
+    font-size: 0.8em;
+    color: #888;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
 }
 
 .requirement-valid {
-  color: green;
+    color: green;
 }
 
 .requirement-invalid-text {
-  color: #888;
+    color: #888;
 }
 
 .requirement-error {
-  color: red;
-  font-weight: bold;
+    color: red;
+    font-weight: bold;
 }
-
 </style>

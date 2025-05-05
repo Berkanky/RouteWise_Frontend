@@ -19,66 +19,38 @@
         </ion-toolbar>
       </ion-footer>
     </ion-menu>
-    <ion-page id="main-content">
-      <ion-header v-if="!this.IsMenuDisable()">
-        <ion-toolbar>
-          <ion-buttons slot="start">
-            <ion-menu-button></ion-menu-button>
-          </ion-buttons>
-          <ion-title>Menu</ion-title>
-        </ion-toolbar>
-      </ion-header>
-      <ion-header v-if="this.IsProgressBarActive()" class="ion-no-border">
-        <!-- <ion-toolbar>
-          <progress-bar />
-        </ion-toolbar> -->
-        <!-- <ion-toolbar>
-          <back-button />
-        </ion-toolbar> -->
-      </ion-header>
-      <ion-content class="ion-padding myApp">
-        <router-view></router-view>
-        <AlertBar 
-          v-if="this.AlertBarActive"
-          @AlertBarClosed="getAlertBarClosed"
-          :AlertBarActive="this.AlertBarActive" 
-          :ServiceRequestData="this.store.ServiceRequestData" />
-      </ion-content>
-    </ion-page>
+    <ion-router-outlet id="main-content" :animation="fadeAnimation"></ion-router-outlet>
   </ion-app>
 </template>
 
 <script>
-import BackButton from './components/BackButton.vue';
-import ProgressBar from './components/ProgressBar.vue';
-import {  IonApp, IonButtons, IonContent, IonHeader, IonMenu, IonMenuButton, IonPage, IonTitle, IonToolbar, IonFooter, IonButton, IonIcon } from '@ionic/vue';
+import { StatusBar  } from '@capacitor/status-bar';
+import { fadeAnimation } from './animation'; // Animasyon dosyasını import et
+
+import { Toast } from '@capacitor/toast';
+import { IonApp, IonContent, IonHeader, IonMenu, IonTitle, IonToolbar, IonFooter, IonButton, IonIcon, IonRouterOutlet } from '@ionic/vue';
 import { logOutOutline } from 'ionicons/icons';
 import { UseStore } from './stores/store';
 import axios from 'axios';
-import AlertBar from './components/AlertBar.vue';
 export default {
   components: {
-    ProgressBar,
     IonApp,
-    IonButtons,
     IonContent,
     IonHeader,
     IonMenu,
-    IonMenuButton,
-    IonPage,
     IonTitle,
     IonToolbar,
     IonFooter,
     IonButton,
     IonIcon,
-    BackButton,
-    AlertBar
+    IonRouterOutlet
   },
   setup() {
     const store = UseStore();
     return {
       store,
-      logOutOutline
+      logOutOutline,
+      fadeAnimation
     }
   },
   data: function () {
@@ -89,22 +61,31 @@ export default {
     }
   },
   methods: {
-    getAlertBarClosed(data){
-      if( data === true) {
+    async NotifyFunction() {
+      var ServiceRequestData = this.store.ServiceRequestData;
+      var IsSuccessfull = 'status' in ServiceRequestData && ServiceRequestData["status"] === true ? true : false;
+
+      var message = IsSuccessfull ? ServiceRequestData.message : ServiceRequestData.status + ' ' + ServiceRequestData.message;
+      await Toast.show({
+        text: message,
+        duration: 'long',
+        position: 'bottom'
+      });
+    },
+    getAlertBarClosed(data) {
+      if (data === true) {
         this.AlertBarActive = !data;
         this.store.ServiceRequestData = {};
       }
     },
     IsProgressBarActive() {
-      var hideMenuList = ["register", "setPassword", "verification", "registerComplete", "setPasswordComplete"];
+      var hideMenuList = ["register", "setPassword", "verification", "registerComplete", "setPasswordComplete", "verificationOptions"];
       var routeName = this.$route.name;
-      var VerificationPageType = this.store.VerificationPageType;
-      if( VerificationPageType === "Login") hideMenuList = hideMenuList.filter(function(item){ return item !== 'verification'});
       return hideMenuList.some(function (row) { return row === routeName });
     },
     IsMenuDisable() {
       var routeName = this.$route.name;
-      var hideMenuList = ["login", "welcome", "register", "setPassword", "verification", "registerComplete", "setPasswordComplete"];
+      var hideMenuList = ["login", "welcome", "register", "setPassword", "verification", "registerComplete", "setPasswordComplete", "verificationOptions"];
 
       return hideMenuList.some(function (row) { return row === routeName });
     },
@@ -170,6 +151,9 @@ export default {
       };
     },
   },
+  created(){
+    StatusBar.setBackgroundColor({ color: '#00000000' });
+  },
   mounted() {
     this.WebSocketForWatchAuth();
 
@@ -177,6 +161,22 @@ export default {
     this.store.WatchServices();
   },
   watch: {
+    $route:{
+      handler(to, from){
+        if( 'Active' in this.store.UserData && this.store.UserData.Active) {
+          //
+        }else{
+          var NonActivePages = ['login', 'register', 'setPassword', 'setPasswordComplete', 'welcome', 'verification', 'registerComplete', 'verificationOptions'];
+          var targetRouteName = to.name;
+
+          var control = NonActivePages.some(function(item){ return item === targetRouteName});
+          if( !control){
+            this.$router.replace({path:'/welcome'});
+          }
+        }
+      },
+      immediate: true, deep: true
+    },
     'store.Token': {
       handler(newVal) {
         if (newVal) console.log("Token : ", newVal);
@@ -197,11 +197,12 @@ export default {
       },
       immediate: true, deep: true
     },
-    'store.ServiceRequestData':{
-      handler(newVal){
-        if( newVal && Object.keys(newVal).length){
+    'store.ServiceRequestData': {
+      handler(newVal) {
+        if (newVal && Object.keys(newVal).length && 'message' in newVal) {
+          this.AlertBarActive = false;
           this.AlertBarActive = true;
-          console.log("ServiceRequestData : ", newVal, this.AlertBarActive);
+          this.NotifyFunction();
         }
       },
       immediate: true, deep: true
@@ -212,14 +213,11 @@ export default {
 
 
 <style scoped>
-.myApp{
+.myApp {
   font-family: "Open Sans", sans-serif;
   font-optical-sizing: auto;
   font-style: normal;
-  font-variation-settings:"wdth" 100;
-}
-ion-menu ion-content {
-  --background: var(--ion-item-background, var(--ion-background-color, #fff));
+  font-variation-settings: "wdth" 100;
 }
 
 ion-menu.md ion-content {

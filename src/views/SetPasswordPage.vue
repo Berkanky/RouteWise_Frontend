@@ -7,20 +7,38 @@
             </div>
 
             <!-- Başlık -->
-            <h1 class="title">Welcome to RouteWise</h1>
+            <h1 class="title">RouteWise</h1>
             <p class="subtitle">
-                Reset your password and go on an adventure with RouteWise.
+                Reset your password and go on an adventure with RouteWise. Choose how you'd like to verify your profile.
             </p>
+            
+            <div class="container"><!-- 
+                <p class="description">Choose how you'd like to verify your profile</p> -->
 
-            <!-- Form -->
-            <form @submit.prevent="onSubmit" class="form">
+                <ion-list>
+                    <ion-item 
+                        v-for="(data, key) in this.Options" :key="key"
+                        :class="this.SelectedOption.id === data.Id ? 'selected-item' : ''"
+                        button @click="this.SelectedOption.id = data.Id;">
+                        <ion-icon slot="start" :icon="data.Icon"></ion-icon>
+                        <ion-label>
+                            <h2> {{ data.Title }} </h2> 
+                            <p>{{ data.Label}} </p>
+                        </ion-label>
+                        <ion-icon slot="end" :icon="chevronForward"></ion-icon>
+                    </ion-item>
+                </ion-list>
+
+            </div>
+
+            <form @submit.prevent="onSubmit" class="form" v-if="this.EmailVerificationActive()">
 
                 <ion-item class="input-container" lines="none">
                     <!-- <ion-label position="stacked" class="inputLabels">Email Address</ion-label> -->
                     <ion-input 
                         class="custom-input"
                         v-model="this.store.SetPasswordData.EMailAddress" type="email"
-                        placeholder="username@example.com" required></ion-input>
+                        placeholder="Email" required></ion-input>
                 </ion-item>
 
                 <RequirementContainerVue
@@ -30,56 +48,108 @@
                 />
 
                 <ion-button v-on:click="this.store.SetPasswordEmailVerificationSend()" type="submit" expand="block"
-                    class="continue-button" :disabled="!isValid()">
+                    class="continue-button" :disabled="!this.store.EMailAddressRegex(this.store.SetPasswordData.EMailAddress)">
                     Continue
                 </ion-button>
             </form>
+
+            <form @submit.prevent="onSubmit" class="form" v-if="!this.EmailVerificationActive()">
+
+                <ion-item class="input-container" lines="none">
+                    <!-- <ion-label position="stacked" class="inputLabels">Email Address</ion-label> -->
+                    <ion-input 
+                        class="custom-input"
+                        v-model="this.store.SetPasswordData.EMailAddress" type="email"
+                        placeholder="Email" required
+                    >
+                    </ion-input>
+                </ion-item>
+
+                <RequirementContainerVue
+                    v-if="!this.store.EMailAddressRegex(this.store.SetPasswordData.EMailAddress)"
+                    Type="setPassword"
+                    RequirementType="EMailAddress"
+                    :IsValid="this.store.EMailAddressRegex(this.store.SetPasswordData.EMailAddress)"
+                />
+
+                <PhoneNumberInput Type="setPassword"/>
+
+                <RequirementContainerVue
+                    v-if="!this.store.PhoneNumberRegex(this.store.SetPasswordData.DialCode, this.store.SetPasswordData.PhoneNumber)"
+                    Type="setPassword"
+                    RequirementType="PhoneNumber"
+                    :IsValid="this.store.PhoneNumberRegex(this.store.SetPasswordData.DialCode, this.store.SetPasswordData.PhoneNumber)"
+                />
+
+                <ion-button v-on:click="this.store.SMSVerificationSend(this.Type)" type="submit" expand="block"
+                    class="continue-button" :disabled="!this.store.PhoneNumberRegex(this.store.SetPasswordData.DialCode, this.store.SetPasswordData.PhoneNumber) || !this.store.EMailAddressRegex(this.store.SetPasswordData.EMailAddress)">
+                    Continue
+                </ion-button>
+                </form>
         </ion-content>
     </ion-page>
 </template>
 
 <script>
 import RequirementContainerVue from '@/components/RequirementContainer.vue';
+import PhoneNumberInput from '@/components/PhoneNumberInput.vue';
 
 import { UseStore } from '../stores/store';
-import { IonPage, IonContent, IonItem, IonLabel, IonInput, IonButton } from '@ionic/vue';
+
+import { mailOutline, callOutline, mailUnreadOutline } from "ionicons/icons";
+import { IonPage, IonContent, IonItem, IonLabel, IonInput, IonButton, IonIcon, IonList } from '@ionic/vue';
 export default {
     components: {
+        IonList,
+        IonIcon,
         IonPage,
         IonContent,
         IonItem,
         IonLabel,
         IonInput,
         IonButton,
-        RequirementContainerVue
+        RequirementContainerVue,
+        PhoneNumberInput
     },
     setup() {
         const store = UseStore();
         return {
-            store
+            store,
+            callOutline,
+            mailOutline,
+            mailUnreadOutline,
         }
     },
     data: function () {
         return {
-            //
+            Options:[
+                {
+                    Id: 1, Title:' Email', Label:"We'll send a verification code your email address.", Icon: mailOutline,
+                },
+                {
+                    Id: 2, Title:' Phone', Label:"We'll send an SMS with a verification code to your phone.", Icon: callOutline,
+                }
+            ],
+            SelectedOption:{ id: 1 },
+            Type: 'setPassword'
         }
     },
     created(){
         this.store.OnboardingStep = 1;
     },
     methods: {
-        isValid() {
-            var EMailAddress = this.store.SetPasswordData?.EMailAddress;
-            return this.store.EMailAddressRegex(EMailAddress) ? true : false
-        }   
+        EmailVerificationActive(){
+            return this.SelectedOption.id === 1 ? true : false;
+        }
     },
     watch:{
         'store.SetPasswordData':{
             handler(newVal){
                 if(newVal) {
                     var Type = 'setPassword';
+                    var VerificationType = this.SelectedOption.id === 1 ? 'Email' : 'SMS';
                     if( 'VerifySended' in newVal && newVal['VerifySended']){
-                        this.$router.push({ path: '/verification/' + this.store.SetPasswordData.EMailAddress + '/' + Type });
+                        this.$router.push({ path: '/verification/' + this.store.SetPasswordData.EMailAddress + '/' + Type + '/' + VerificationType});
                     }
                 }
             },
@@ -119,7 +189,6 @@ export default {
 
 .logo-wrapper {
     text-align: center;
-    margin-top: 60px;
 }
 
 .logo {
@@ -137,7 +206,7 @@ export default {
 
 .subtitle {
     text-align: center;
-    margin: 0 32px 24px;
+    margin: 0 32px 0px;
     font-size: 14px;
     color: #666;
 }
@@ -165,5 +234,18 @@ ion-input {
     font-size: 16px;
     font-weight: 500;
     text-transform: none;
+}
+
+.container {
+    padding: 16px;
+}
+
+.description {
+    color: gray;
+}
+
+.selected-item {
+    --background: #e0e0e0;
+    border-radius: 8px;
 }
 </style>

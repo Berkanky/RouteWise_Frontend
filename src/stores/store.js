@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import axios from "axios";
 export const UseStore = defineStore("UseStore", {
   state: () => ({
-    DeviceId:'',
+    DeviceId: "",
     UserData: {},
 
     LoginData: {
@@ -13,22 +13,21 @@ export const UseStore = defineStore("UseStore", {
     RegisterData: { VerifySended: false },
     SetPasswordData: {},
 
-    Token: '',
-    ServerRoot: 'https://api.routewiseapp.com', //"https://routewisebackend-production.up.railway.app",
+    Token: "",
+    ServerRoot: "https://api.routewiseapp.com", //"https://routewisebackend-production.up.railway.app",
 
-    OnboardingStep:1,
+    OnboardingStep: 1,
     AppStarted: false,
 
-    VerificationPageType:'',
+    VerificationPageType: "",
 
-    ServiceRequestData:{}
+    ServiceRequestData: {},
   }),
   actions: {
     WatchServices() {
-
       axios.interceptors.request.use(
         (config) => {
-          return config;
+          return Promise.resolve(config);
         },
         (err) => {
           return Promise.reject(err);
@@ -37,14 +36,18 @@ export const UseStore = defineStore("UseStore", {
 
       axios.interceptors.response.use(
         (res) => {
+          this.ServiceRequestData = {};
           this.ServiceRequestData.message = res.data.message;
           this.ServiceRequestData.status = res.status;
 
-          return res;
+          return Promise.resolve(res);
         },
         (err) => {
-
-          this.ServiceRequestData.message = err.response?.data?.message ?? err.message ?? 'Error, please try again.';
+          this.ServiceRequestData = {};
+          this.ServiceRequestData.message =
+            err.response?.data?.message ??
+            err.message ??
+            "Error, please try again.";
           this.ServiceRequestData.status = err.response?.status ?? 500;
 
           return Promise.reject(err);
@@ -55,7 +58,6 @@ export const UseStore = defineStore("UseStore", {
       this.$reset();
     },
     RegisterEmailVerificationSend() {
-      
       var ServerRoot = this.ServerRoot;
       var EMailAddress = this.RegisterData.EMailAddress;
       this.RegisterData.VerifySended = false;
@@ -71,8 +73,93 @@ export const UseStore = defineStore("UseStore", {
           if (err.status === 504) return this.RegisterEmailVerificationSend();
         });
     },
-    LoginEmailVerificationSend() {
+    SMSVerify(param) {
+      var { EMailAddress, PhoneNumber, DialCode, Type, VerificationCode } = param;
+      var ServerRoot = this.ServerRoot;
+      console.log("Param : ", JSON.stringify(param));
+      axios
+        .put(
+          `${ServerRoot}/verify/otp/sms/${EMailAddress}`,
+          {
+            EMailAddress: EMailAddress,
+            PhoneNumber: PhoneNumber,
+            DialCode: DialCode,
+            Type: Type,
+            VerificationCode: VerificationCode,
+          },
+          {}
+        )
+        .then((res) => {
+          console.log(res);
+          if (res.status === 200) {
+            if (Type === "Login") {
 
+              this.LoginData.Verified = true;
+              this.LoginData.VerifySended = false;
+
+            } else if (Type === "Register") {
+
+              this.RegisterData.Verified = true;
+              this.RegisterData.VerifySended = false;
+
+            } else if (Type === "setPassword") {
+
+              this.SetPasswordData.Verified = true;
+              this.SetPasswordData.VerifySended = false;
+              this.Token = res.data.Token;
+
+            }
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+          if (err.status === 504) this.SMSVerify(param);
+        });
+    },
+    SMSVerificationSend(Type) {
+      var ServerRoot = this.ServerRoot;
+      var EMailAddress, PhoneNumber, DialCode, Password;
+      
+      if (Type == "Register") {
+        this.RegisterData.VerifySended = false;
+        EMailAddress = this.RegisterData.EMailAddress;
+        PhoneNumber = this.RegisterData.PhoneNumber;  
+        DialCode = this.RegisterData.DialCode;
+      }
+      if (Type == "Login") {
+        this.LoginData.VerifySended = false;
+        EMailAddress = this.LoginData.EMailAddress;
+        PhoneNumber = this.LoginData.PhoneNumber;
+        DialCode = this.LoginData.DialCode;
+        Password = this.LoginData.Password;
+      }
+      if (Type == "setPassword") {
+        this.SetPasswordData.VerifySended = false;
+        EMailAddress = this.SetPasswordData.EMailAddress;
+        PhoneNumber = this.SetPasswordData.PhoneNumber;
+        DialCode = this.SetPasswordData.DialCode;
+      }
+
+      axios
+        .put(
+          `${ServerRoot}/send/otp/sms/${EMailAddress}`,
+          { EMailAddress, PhoneNumber, DialCode, Type, Password },
+          {}
+        )
+        .then((res) => {
+          console.log(res);
+          if (res.status === 201) {
+            if (Type == "Register") this.RegisterData.VerifySended = true;
+            if (Type == "Login") this.LoginData.VerifySended = true;
+            if (Type == "setPassword") this.SetPasswordData.VerifySended = true;
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+          if (err.status === 504) return this.RegisterSMSVerificationSend();
+        });
+    },
+    LoginEmailVerificationSend() {
       var ServerRoot = this.ServerRoot;
       var EMailAddress = this.LoginData.EMailAddress;
       var Password = this.LoginData.Password;
@@ -85,31 +172,35 @@ export const UseStore = defineStore("UseStore", {
         .then((res) => {
           console.log(res);
           if (res.status === 200) this.LoginData.VerifySended = true;
-            
         })
         .catch((err) => {
           console.log(err);
           if (err.status === 504) this.ContinueEmailVerificationStep();
         });
     },
-    SetPasswordEmailVerificationSend(){
+    SetPasswordEmailVerificationSend() {
       var EMailAddress = this.SetPasswordData.EMailAddress;
       var ServerRoot = this.ServerRoot;
 
       this.SetPasswordData.VerifySended = false;
 
-      axios.post(`${ServerRoot}/set/password/email/verification/${EMailAddress}`, {}, {})
-        .then(res => {
+      axios
+        .post(
+          `${ServerRoot}/set/password/email/verification/${EMailAddress}`,
+          {},
+          {}
+        )
+        .then((res) => {
           console.log(res);
-          if( res.status === 200) this.SetPasswordData.VerifySended = true;
-        })  
-        .catch(err => {
-          console.log(err);
-          if( err.status === 504) return this.SetPasswordEmailVerificationSend();
+          if (res.status === 200) this.SetPasswordData.VerifySended = true;
         })
-
+        .catch((err) => {
+          console.log(err);
+          if (err.status === 504)
+            return this.SetPasswordEmailVerificationSend();
+        });
     },
-    PasswordRegex(Password){
+    PasswordRegex(Password) {
       var pattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
       return pattern.test(Password);
     },
@@ -117,6 +208,17 @@ export const UseStore = defineStore("UseStore", {
       var EMailAddressRegex =
         /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/; //RFC5322
       return EMailAddressRegex.test(EMailAddress);
+    },
+    PhoneNumberRegex(DialCode, PhoneNumber) {
+      var CustomerPhoneNumber = DialCode + PhoneNumber;
+
+      var phoneNumberRegex =
+        /^(?=(\D*\d){7,15}$)\+?[\s().-]*\d+([\s().-]*\d+)*[\s().-]*$/;
+      return phoneNumberRegex.test(CustomerPhoneNumber);
+    },
+    isValid(VerificationCode) {
+      var verificationCodeRegex = /^\d{6}$/;
+      return verificationCodeRegex.test(VerificationCode);
     },
   },
   persist: {

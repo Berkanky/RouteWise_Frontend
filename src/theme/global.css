@@ -3,3 +3,9 @@ ion-toolbar {
   padding-top: env(safe-area-inset-top);
   height: calc(env(safe-area-inset-top) + 56px);
 }
+body {
+  background: transparent;
+}
+ion-content {
+  --background: transparent;
+}

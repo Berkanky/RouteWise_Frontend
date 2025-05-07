@@ -14,8 +14,8 @@
 
       <div class="action-section ion-padding">
         <ion-button expand="block" class="get-started" @click="goRegisterPage()">Get Started</ion-button>
-        <p class="login-link ion-text-center">
-          Already have an account? <router-link @click="GoLoginPage()">Login</router-link>
+        <p class="login-link ion-text-center" v-on:click="this.GoLoginPage()">
+          Already have an account ? <b>Login</b>
         </p>
       </div>
 

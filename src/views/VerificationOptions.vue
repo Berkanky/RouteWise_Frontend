@@ -1,11 +1,11 @@
 <template>
     <ion-page>
-        <ion-content fullscreen>
-            <div class="logo-section ion-padding-top ion-text-center">
+        <ion-content fullscreen color="light">
+            <BackButton />
+            <div class="logo-wrapper">
                 <img src="../Images/VerificationOptionsPageLogo.png" alt="Logo" class="logo" />
-                <h1 class="title">Verification</h1>
             </div>
-
+            <div class="verification">Verification</div>
             <div class="container">
                 <p class="description">Choose how you'd like to verify your profile.</p>
 
@@ -34,6 +34,7 @@
 </template>
 
 <script>
+import BackButton from "@/components/BackButton.vue";
 import {
     IonPage,
     IonContent,
@@ -54,7 +55,8 @@ export default defineComponent({
         IonItem,
         IonIcon,
         IonLabel,
-        IonPage
+        IonPage,
+        BackButton
     },
     setup() {
         const store = UseStore();
@@ -114,18 +116,14 @@ export default defineComponent({
 </script>
 
 <style scoped>
-.logo-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+.verification {
     position: relative;
-    z-index: 2;
-    background: #ffffff;
-}
-
-.logo {
-    width: 170px;
-    height: auto;
+    font-size: 26px;
+    line-height: 40px;
+    font-weight: 600;
+    font-family: Inter;
+    color: #000;
+    text-align: center;
 }
 
 .container {
@@ -135,5 +133,6 @@ export default defineComponent({
 .description {
     color: gray;
     margin-bottom: 20px;
+    text-align: center;
 }
 </style>

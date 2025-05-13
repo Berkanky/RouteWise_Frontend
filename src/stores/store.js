@@ -13,6 +13,10 @@ export const UseStore = defineStore("UseStore", {
     RegisterData: { VerifySended: false },
     SetPasswordData: {},
 
+    CurrentLocation:{},
+    DestinationLocation:{},
+    CalculatedRoute:{},
+
     Token: "",
     ServerRoot: "https://api.routewiseapp.com", //"https://routewisebackend-production.up.railway.app",
 
@@ -74,7 +78,7 @@ export const UseStore = defineStore("UseStore", {
         });
     },
     SMSVerify(param) {
-      var { EMailAddress, PhoneNumber, DialCode, Type, VerificationCode } = param;
+      var { EMailAddress, PhoneNumber, DialCode, Type, VerificationId } = param;
       var ServerRoot = this.ServerRoot;
       console.log("Param : ", JSON.stringify(param));
       axios
@@ -85,7 +89,7 @@ export const UseStore = defineStore("UseStore", {
             PhoneNumber: PhoneNumber,
             DialCode: DialCode,
             Type: Type,
-            VerificationCode: VerificationCode,
+            VerificationId: VerificationId,
           },
           {}
         )
@@ -108,6 +112,9 @@ export const UseStore = defineStore("UseStore", {
               this.SetPasswordData.VerifySended = false;
               this.Token = res.data.Token;
 
+            } else if(Type === "RegisterComplete") {
+              this.RegisterData.PhoneNumberVerified = true;
+              this.RegisterData.PhoneNumberVerifySended = false;
             }
           }
         })
@@ -139,7 +146,13 @@ export const UseStore = defineStore("UseStore", {
         PhoneNumber = this.SetPasswordData.PhoneNumber;
         DialCode = this.SetPasswordData.DialCode;
       }
-
+      if(Type == "RegisterComplete") {
+        this.RegisterData.PhoneNumberVerifySended = false;
+        EMailAddress = this.RegisterData.EMailAddress;
+        PhoneNumber = this.RegisterData.PhoneNumber;  
+        DialCode = this.RegisterData.DialCode;
+      }
+      console.log(EMailAddress, DialCode, PhoneNumber);
       axios
         .put(
           `${ServerRoot}/send/otp/sms/${EMailAddress}`,
@@ -152,6 +165,7 @@ export const UseStore = defineStore("UseStore", {
             if (Type == "Register") this.RegisterData.VerifySended = true;
             if (Type == "Login") this.LoginData.VerifySended = true;
             if (Type == "setPassword") this.SetPasswordData.VerifySended = true;
+            if (Type == "RegisterComplete") this.RegisterData.PhoneNumberVerifySended = true;
           }
         })
         .catch((err) => {
@@ -216,9 +230,9 @@ export const UseStore = defineStore("UseStore", {
         /^(?=(\D*\d){7,15}$)\+?[\s().-]*\d+([\s().-]*\d+)*[\s().-]*$/;
       return phoneNumberRegex.test(CustomerPhoneNumber);
     },
-    isValid(VerificationCode) {
-      var verificationCodeRegex = /^\d{6}$/;
-      return verificationCodeRegex.test(VerificationCode);
+    isValid(VerificationId) {
+      var VerificationIdRegex = /^\d{6}$/;
+      return VerificationIdRegex.test(VerificationId);
     },
   },
   persist: {

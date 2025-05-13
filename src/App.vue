@@ -19,16 +19,36 @@
         </ion-toolbar>
       </ion-footer>
     </ion-menu>
+    <ion-header v-if="!this.IsMenuDisable()" :translucent="true" class="ion-no-border">
+      <ion-buttons slot="start">
+        <ion-menu-button auto-hide="false" color="medium"></ion-menu-button>
+      </ion-buttons>
+    </ion-header>
     <ion-router-outlet id="main-content" :animation="fadeAnimation"></ion-router-outlet>
   </ion-app>
 </template>
 
 <script>
-import { StatusBar  } from '@capacitor/status-bar';
+import { Geolocation } from '@capacitor/geolocation';
+import { StatusBar, Style } from '@capacitor/status-bar';
+import { Preferences } from '@capacitor/preferences';
 import { fadeAnimation } from './animation'; // Animasyon dosyasını import et
 
 import { Toast } from '@capacitor/toast';
-import { IonApp, IonContent, IonHeader, IonMenu, IonTitle, IonToolbar, IonFooter, IonButton, IonIcon, IonRouterOutlet } from '@ionic/vue';
+import {
+  IonApp,
+  IonContent,
+  IonHeader,
+  IonMenu,
+  IonTitle,
+  IonToolbar,
+  IonFooter,
+  IonButton,
+  IonButtons,
+  IonMenuButton,
+  IonIcon,
+  IonRouterOutlet
+} from '@ionic/vue';
 import { logOutOutline } from 'ionicons/icons';
 import { UseStore } from './stores/store';
 import axios from 'axios';
@@ -43,7 +63,9 @@ export default {
     IonFooter,
     IonButton,
     IonIcon,
-    IonRouterOutlet
+    IonRouterOutlet,
+    IonButtons,
+    IonMenuButton
   },
   setup() {
     const store = UseStore();
@@ -63,13 +85,12 @@ export default {
   methods: {
     async NotifyFunction() {
       var ServiceRequestData = this.store.ServiceRequestData;
-      var IsSuccessfull = 'status' in ServiceRequestData && ServiceRequestData["status"] === true ? true : false;
+      var status = ServiceRequestData.status;
+      var message = ServiceRequestData.message;
 
-      var message = IsSuccessfull ? ServiceRequestData.message : ServiceRequestData.status + ' ' + ServiceRequestData.message;
       await Toast.show({
-        text: message,
-        duration: 'long',
-        position: 'bottom'
+        text: status + ' ' + message,
+        position: 'top'
       });
     },
     getAlertBarClosed(data) {
@@ -89,6 +110,14 @@ export default {
 
       return hideMenuList.some(function (row) { return row === routeName });
     },
+    async deleteRefreshToken() {
+      try {
+        await Preferences.remove({ key: 'RefreshToken' });
+        console.log('Refresh Token başarıyla silindi.');
+      } catch (error) {
+        console.error('Refresh Token silinirken hata:', error);
+      }
+    },
     LogoutService() {
       var ServerRoot = this.store.ServerRoot;
       var EMailAddress = this.store.UserData.EMailAddress;
@@ -103,6 +132,8 @@ export default {
           console.log(res);
           this.$router.replace({ path: '/login' });
           this.store.ResetPiniaStore();
+          this.deleteRefreshToken();
+
         })
         .catch(err => {
           console.log(err);
@@ -150,36 +181,37 @@ export default {
         console.log("WebSocket hatası: " + error.message);
       };
     },
+    async GetCurrentLocation(){
+      this.store.CurrentLocation = (await Geolocation.getCurrentPosition()).coords;
+      console.log("Current Location : ", JSON.stringify(this.store.CurrentLocation));
+    }
   },
-  created(){
+  created() {
+
     StatusBar.setBackgroundColor({ color: '#00000000' });
+    StatusBar.setOverlaysWebView({ overlay: false });
+    StatusBar.setStyle({ style: Style.Dark });
+    this.GetCurrentLocation();
   },
   mounted() {
-    this.WebSocketForWatchAuth();
-
     this.store.AppStarted = true;
+    this.WebSocketForWatchAuth();
     this.store.WatchServices();
   },
   watch: {
-    $route:{
-      handler(to, from){
-        if( 'Active' in this.store.UserData && this.store.UserData.Active) {
+    $route: {
+      handler(to) {
+        if ('Active' in this.store.UserData && this.store.UserData.Active) {
           //
-        }else{
+        } else {
           var NonActivePages = ['login', 'register', 'setPassword', 'setPasswordComplete', 'welcome', 'verification', 'registerComplete', 'verificationOptions'];
           var targetRouteName = to.name;
 
-          var control = NonActivePages.some(function(item){ return item === targetRouteName});
-          if( !control){
-            this.$router.replace({path:'/welcome'});
+          var control = NonActivePages.some(function (item) { return item === targetRouteName });
+          if (!control) {
+            this.$router.replace({ path: '/welcome' });
           }
         }
-      },
-      immediate: true, deep: true
-    },
-    'store.Token': {
-      handler(newVal) {
-        if (newVal) console.log("Token : ", newVal);
       },
       immediate: true, deep: true
     },
@@ -190,9 +222,7 @@ export default {
           this.UserData = newVal;
           if ("Active" in newVal) {
             if (!newVal["Active"]) return this.$router.replace({ path: '/welcome' });
-          } else {
-            return this.$router.replace({ path: '/welcome' });
-          }
+          } else return this.$router.replace({ path: '/welcome' });
         }
       },
       immediate: true, deep: true
@@ -213,6 +243,10 @@ export default {
 
 
 <style scoped>
+.ion-no-border {
+  --border-width: 0;
+}
+
 .myApp {
   font-family: "Open Sans", sans-serif;
   font-optical-sizing: auto;

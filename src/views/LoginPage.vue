@@ -1,6 +1,7 @@
 <template>
     <ion-page class="signup-page">
         <ion-content fullscreen color="light">
+            <BackButton />
             <!-- Logo -->
             <div class="logo-wrapper">
                 <img src="../Images/RouteWise-3D-İcon.png" alt="Routewise Logo" class="logo" />
@@ -15,25 +16,33 @@
             <!-- Form -->
             <form @submit.prevent="onSubmit" class="form">
                 <ion-item class="input-container" lines="none">
-                    <!-- <ion-label position="stacked" class="inputLabels">Email Address</ion-label> -->
-                    <ion-input class="custom-input" v-model="this.store.LoginData.EMailAddress" type="email"
-                        placeholder="Email" required
+                    <ion-input
+                        label="Email" label-placement="floating"
+                        class="custom-input" v-model="this.store.LoginData.EMailAddress" type="email"
+                        required
                         :disabled="this.store.LoginData.Verified"></ion-input>
                 </ion-item>
 
-                <RequirementContainerVue Type="Login" RequirementType="EMailAddress"
+                <RequirementContainerVue 
+                    v-if="this.store.LoginData.EMailAddress && !this.store.EMailAddressRegex(this.store.LoginData.EMailAddress)"
+                    Type="Login" RequirementType="EMailAddress"
                     :IsValid="this.store.EMailAddressRegex(this.store.LoginData.EMailAddress)" />
 
-                <ion-item class="input-container" lines="none">
-                    <!-- <ion-label position="stacked" class="inputLabels">Password</ion-label> -->
-                    <ion-input :disabled="this.store.LoginData.Verified" class="custom-input"
-                        v-model="this.store.LoginData.Password" type="password" placeholder="Password" minlength="6"
+                <ion-item class="input-container" lines="none">   
+                    <ion-input 
+                        label="Password" 
+                        label-placement="floating"
+                        :disabled="this.store.LoginData.Verified" 
+                        class="custom-input"
+                        v-model="this.store.LoginData.Password" type="password" 
                         required>
-                        <ion-input-password-toggle color="medium" slot="end"></ion-input-password-toggle>
+                        <ion-input-password-toggle v-if="this.store.LoginData.Password" color="medium" slot="end"></ion-input-password-toggle>
                     </ion-input>
                 </ion-item>
 
-                <RequirementContainerVue Type="Login" RequirementType="Password"
+                <RequirementContainerVue 
+                    v-if="this.store.LoginData.Password && !this.store.PasswordRegex(this.store.LoginData.Password)"
+                    Type="Login" RequirementType="Password"
                     :IsValid="this.store.PasswordRegex(this.store.LoginData.Password)" />
 
                 <ion-item class="input-item remember-item" lines="none">
@@ -51,34 +60,21 @@
                 </ion-item>
 
                 <div v-if="!this.store.LoginData.Verified">
-
-                   <!--  <div class="button-container">
-                        <ion-button  
-                            v-on:click="this.store.SMSVerificationSend('Login');this.EMailAddressVerificationActive=false;"
-                            type="submit" expand="block" class="phone-verification-button" :disabled="!isValid()">
-                                <ion-icon :icon="callOutline" slot="start"></ion-icon>
-                                SMS
-                        </ion-button>
-                        <ion-button  
-                            v-on:click="this.store.LoginEmailVerificationSend();this.EMailAddressVerificationActive=true;"
-                            type="submit" expand="block" class="email-verification-button" :disabled="!isValid()">
-                                <ion-icon :icon="mailOpenOutline" slot="start"></ion-icon>
-                                Email
-                        </ion-button>
-                    </div> -->
-                    
                     <ion-button 
                         :disabled="!isValid()"
                         v-on:click="goVerificationOptionsPage()" 
                         type="submit"
-                        expand="block" class="continue-button"
+                        expand="block"
+                        :class="!isValid() ? 'continue-button-disabled' : 'continue-button'"
                     >
                         Continue
                     </ion-button>
                     
                 </div>
                 <ion-button v-if="this.store.LoginData.Verified" v-on:click="this.LoginService()" type="submit"
-                    expand="block" class="continue-button" :disabled="!isValid()">
+                    expand="block" 
+                    :class="!isValid() ? 'continue-button-disabled' : 'continue-button'"
+                    :disabled="!isValid()">
                     Login
                 </ion-button>
             </form>
@@ -87,6 +83,7 @@
 </template>
 
 <script>
+import BackButton from '@/components/BackButton.vue';
 import { callOutline, mailOpenOutline } from 'ionicons/icons';
 import { UseStore } from '../stores/store';
 import { IonPage, IonContent, IonItem, IonLabel, IonInput, IonButton, IonCheckbox, IonInputPasswordToggle } from '@ionic/vue';
@@ -104,7 +101,8 @@ export default {
         IonButton,
         IonCheckbox,
         IonInputPasswordToggle,
-        RequirementContainerVue
+        RequirementContainerVue,
+        BackButton
     },
     setup() {
         const store = UseStore();
@@ -264,19 +262,11 @@ export default {
 .custom-input {
     --placeholder-color: #999;
     --placeholder-opacity: 1;
+    --highlight-color-focused: #000000;
 }
 
 .signup-page {
     --background: #ffffff;
-}
-
-.logo-wrapper {
-    text-align: center;
-}
-
-.logo {
-    width: 80px;
-    height: auto;
 }
 
 .title {
@@ -298,15 +288,6 @@ export default {
     padding: 0 16px;
 }
 
-.continue-button {
-    --background: #e4002b;
-    --border-radius: 24px;
-    color: #fff;
-    margin-top: 16px;
-    font-size: 16px;
-    font-weight: 500;
-    text-transform: none;
-}
 
 .email-verification-button {
     --background: #e4002b;

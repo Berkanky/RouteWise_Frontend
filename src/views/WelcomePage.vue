@@ -2,15 +2,16 @@
   <ion-page>
     <ion-content fullscreen color="light" class="welcome-content">
 
-      <div class="logo-section ion-padding-top ion-text-center">
+      <div class="logo-wrapper" style="margin-top:25px;">
         <img src="../Images/RouteWise-3D-İcon.png" alt="Logo" class="logo" />
-        <h1 class="title">RouteWise</h1>
-        <p class="subtitle">Plan smarter journeys, save on every mile with RouteWise.</p>
       </div>
+
+      <h1 class="title">RouteWise</h1>
+      <p class="subtitle">Plan smarter journeys, save on every mile with RouteWise.</p>
 
       <div class="map-container">
         <img src="../Images/RouteWiseMapV2.png" alt="Map Background" class="map-bg" />
-        </div>
+      </div>
 
       <div class="action-section ion-padding">
         <ion-button expand="block" class="get-started" @click="goRegisterPage()">Get Started</ion-button>
@@ -18,7 +19,6 @@
           Already have an account ? <b>Login</b>
         </p>
       </div>
-
     </ion-content>
   </ion-page>
 </template>
@@ -114,28 +114,13 @@ ion-content::part(scroll) {
   --padding-bottom: 150px;
 }
 
-.logo-section {
-  padding-top: 8vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  position: relative;
-  z-index: 2;
-  background: #ffffff;
-}
-
-.logo {
-  width: 100px;
-  height: auto;
-  margin-bottom: 16px;
-}
-
 .title {
   margin: 0;
   margin-bottom: 12px;
   font-size: 36px;
   font-weight: 700;
   color: #000000;
+  text-align: center;
 }
 
 .subtitle {
@@ -145,6 +130,7 @@ ion-content::part(scroll) {
   color: #6c757d;
   line-height: 1.4;
   max-width: 300px;
+  text-align: center;
 }
 
 .map-container {
@@ -152,7 +138,6 @@ ion-content::part(scroll) {
   width: 100%;
   overflow: hidden;
   line-height: 0;
-  margin-top: -5vh;
   z-index: 1;
 }
 

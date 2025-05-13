@@ -4,8 +4,39 @@ ion-toolbar {
   height: calc(env(safe-area-inset-top) + 56px);
 }
 body {
-  background: transparent;
+  background: transparent !important;
 }
 ion-content {
-  --background: transparent;
+  --background: transparent !important;
+}
+
+.logo-wrapper{
+  text-align: center;
+}
+
+.logo {
+    width: 80px;
+    height: auto;
+}
+
+.continue-button {
+    --background: #e4002b;
+    --border-radius: 24px;
+    color: #fff;
+    margin-top: 16px;
+    font-size: 16px;
+    font-weight: 500;
+    text-transform: none;
+    width:100%;
+}
+
+.continue-button-disabled {
+    --background: var(--Deselect, #D1D1D1);
+    --border-radius: 24px;
+    color: Gray;
+    margin-top: 16px;
+    font-size: 16px;
+    font-weight: 500;
+    text-transform: none;
+    width:100%;
 }

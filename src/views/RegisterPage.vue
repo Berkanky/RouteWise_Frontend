@@ -1,7 +1,7 @@
 <template>
     <ion-page class="signup-page">
-        <ion-content fullscreen>
-
+        <ion-content fullscreen color="light">
+            <BackButton />
             <div class="logo-wrapper">
                 <img src="../Images/RouteWise-3D-İcon.png" alt="Routewise Logo" class="logo" />
             </div>
@@ -13,27 +13,42 @@
 
             <form @submit.prevent="onSubmit" class="form">
                 <ion-item class="input-container" lines="none">
-                    <ion-input class="custom-input" v-model="this.store.RegisterData.EMailAddress" type="email"
-                        placeholder="username@example.com" required></ion-input>
+                    <ion-input 
+                        label="Email" label-placement="floating"
+                        class="custom-input" v-model="this.store.RegisterData.EMailAddress" type="email"
+                        required></ion-input>
                 </ion-item>
 
-                <RequirementContainerVue Type="Register" RequirementType="EMailAddress"
+                <RequirementContainerVue v-if="this.store.RegisterData.EMailAddress && !isValid()" Type="Register"
+                    RequirementType="EMailAddress"
                     :IsValid="this.store.EMailAddressRegex(this.store.RegisterData.EMailAddress)" />
 
-                <ion-button v-on:click="this.store.RegisterEmailVerificationSend()" type="submit" expand="block"
-                    class="continue-button" :disabled="!isValid()">
+                <ion-button
+                    v-on:click="this.store.RegisterEmailVerificationSend()" type="submit" expand="block"
+                    :class="!isValid() ? 'continue-button-disabled' : 'continue-button'"
+                    :disabled="!isValid()">
                     Email Verification
                 </ion-button>
             </form>
+
+            <!-- <div class="map-container">
+                <img src="../Images/RouteWiseMapV2.png" alt="Map Background" class="map-bg" />
+            </div> -->
         </ion-content>
     </ion-page>
 </template>
 
 <script>
 import RequirementContainerVue from '@/components/RequirementContainer.vue';
-
+import BackButton from '@/components/BackButton.vue';
 import { UseStore } from '../stores/store';
-import { IonPage, IonContent, IonItem, IonInput, IonButton  } from '@ionic/vue';
+import {
+    IonPage,
+    IonContent,
+    IonItem,
+    IonInput,
+    IonButton,
+} from '@ionic/vue';
 
 export default {
     components: {
@@ -42,7 +57,8 @@ export default {
         IonItem,
         IonInput,
         IonButton,
-        RequirementContainerVue
+        RequirementContainerVue,
+        BackButton
     },
     setup() {
         const store = UseStore();
@@ -52,6 +68,10 @@ export default {
     },
     data: function () {
         return {
+            agreements: {
+                terms: false,         // Kullanım Koşulları
+                privacy: false,       // Gizlilik Politikası ve KVKK
+            }
         }
     },
     created() {
@@ -71,7 +91,7 @@ export default {
                     var VerificationType = "Email";
 
                     if ('VerifySended' in newVal && newVal['VerifySended']) {
-                        this.$router.push({ path: '/verification/' + this.store.RegisterData.EMailAddress + '/' + Type + '/' + VerificationType});
+                        this.$router.push({ path: '/verification/' + this.store.RegisterData.EMailAddress + '/' + Type + '/' + VerificationType });
                     }
                 }
             },
@@ -88,15 +108,6 @@ export default {
 
 .signup-page {
     --background: #ffffff;
-}
-
-.logo-wrapper {
-    text-align: center;
-}
-
-.logo {
-    width: 80px;
-    height: auto;
 }
 
 .title {
@@ -134,16 +145,7 @@ export default {
 .custom-input {
     --placeholder-color: #999;
     --placeholder-opacity: 1;
-}
-
-.continue-button {
-    --background: #e4002b;
-    --border-radius: 24px;
-    color: #fff;
-    margin-top: 16px;
-    font-size: 16px;
-    font-weight: 500;
-    text-transform: none;
+    --highlight-color-focused: #000000;
 }
 
 .centered-button-container {
@@ -200,5 +202,48 @@ export default {
 .round-icon-button-active ion-icon {
     color: #fff;
     font-size: 24px;
+}
+
+.map-container {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    line-height: 0;
+    z-index: 1;
+}
+
+.map-bg {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    display: block;
+}
+
+.map-container::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 40%;
+    background: linear-gradient(to bottom,
+            #ffffff 30%,
+            rgba(255, 255, 255, 0) 100%);
+    pointer-events: none;
+    z-index: 2;
+}
+
+.map-container::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 40%;
+    background: linear-gradient(to top,
+            #ffffff 30%,
+            rgba(255, 255, 255, 0) 100%);
+    pointer-events: none;
+    z-index: 2;
 }
 </style>

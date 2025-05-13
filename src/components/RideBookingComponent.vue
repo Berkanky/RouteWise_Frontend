@@ -124,6 +124,8 @@
 </template>
 
 <script>
+import axios from 'axios';
+import { UseStore } from '../stores/store';
 import {
     IonHeader,
     IonToolbar,
@@ -176,8 +178,10 @@ export default {
     },
     emits: ['closeModal'],
     setup(){
+        const store = UseStore();
         return{
-            carOutline
+            carOutline,
+            store
         }
     },
     data() {
@@ -297,18 +301,35 @@ export default {
             // Ama genellikle "Apply" butonu ile bu işlem yapılır.
             // Şimdilik sadece currentRangeValue güncelleniyor, watcher bunu priceRangeInput'a yansıtıyor.
         },
-        async findRider() {
-            console.log('Finding rider with details:', this.bookingDetails);
-            // TODO: API çağrısı yaparak araçları/sürücüleri bul
+        findRider() {
+            var ServerRoot = this.store.ServerRoot;
+            var EMailAddress = this.store.UserData.EMailAddress;
+            var Token = this.store.Token;
 
-            // Demo için örnek araçlar:
-            this.availableVehicles = [
-                { id: 1, name: 'Toyota Camry', passengerCapacity: 4, price: 12, arrivalTime: '1-2m', imageUrl: 'https://via.placeholder.com/80x80.png?text=Car1' },
-                { id: 2, name: 'Honda Civic', passengerCapacity: 4, price: 10, arrivalTime: '2-4m', imageUrl: 'https://via.placeholder.com/80x80.png?text=Car2' },
-                { id: 3, name: 'Ford Focus', passengerCapacity: 3, price: 15, arrivalTime: '3-5m', imageUrl: 'https://via.placeholder.com/80x80.png?text=Car3' },
-            ];
-            this.selectedVehicleId = null; // Yeni aramada seçimi sıfırla
-            this.goToStep(3);
+            var Latitude = this.store.CurrentLocation.latitude;
+            var Longitude = this.store.CurrentLocation.longitude;
+            var TravelMode = "Driving";
+            var DestinationLocationLatitude = '40.985496058' //this.store.DestinationLocation.latitude;
+            var DestinationLocationLongitude = '29.035333192' //this.store.DestinationLocation.longitude;
+
+            axios.put(`${ServerRoot}/google/directions/${EMailAddress}`, {
+                Latitude, Longitude, TravelMode, DestinationLocationLatitude, DestinationLocationLongitude
+            }, {
+                headers:{
+                    "Authorization":"Bearer " + Token
+                }
+            })
+            .then(res => {
+                console.log(res);
+                if(res.status === 200) {
+                    this.store.CalculatedRoute.decoded_overview_polyline_points = res.data.decoded_overview_polyline_points;
+                    console.log("this.store.CalculatedRoute.decoded_overview_polyline_points : ", this.store.CalculatedRoute.decoded_overview_polyline_points);
+                }
+            })
+            .catch(err => {
+                console.log(err);
+                if( err.status === 504) return this.findRider();
+            })
         },
         selectVehicle(vehicle) {
             this.selectedVehicleId = vehicle.id;

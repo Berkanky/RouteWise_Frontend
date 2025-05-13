@@ -35,8 +35,8 @@ pinia.use(piniaPluginPersistedstate);
 
 const app = createApp(App)
 
-app.use(IonicVue)
-app.use(router)
+app.use(IonicVue);
+app.use(router);
 app.use(pinia);
 
 router.isReady().then(() => {

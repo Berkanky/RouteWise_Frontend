@@ -1,30 +1,32 @@
 <template>
   <ion-page>
-    <ion-content :fullscreen="true" class="secure-journey-content">
+    <ion-content :fullscreen="true" class="secure-journey-content" color="light">
+      <BackButton />
+
       <div class="content-container">
-        <ion-img :src="SetPasswordLogo" alt="Lock Icon" class="lock-icon"></ion-img>
+        <div class="logo-wrapper">
+          <img :src="SetPasswordLogo" alt="Lock Icon" class="logo" />
+        </div>
 
         <h1 class="title">Secure your journey</h1>
         <p class="subtitle">Reset your password and unlock smarter travel with Routewise.</p>
 
         <ion-item class="input-container" lines="none">
-          <ion-input class="custom-input" v-model="this.store.SetPasswordData.EMailAddress" type="email" required
-            disabled></ion-input>
+          <ion-input label="Email" label-placement="floating" class="custom-input"
+            v-model="this.store.SetPasswordData.EMailAddress" type="email" required disabled></ion-input>
         </ion-item>
 
         <ion-item lines="none" class="input-container">
-          <ion-input type="password" placeholder="Enter your new password" v-model="store.SetPasswordData.Password"
-            @ionInput="validatePassword" class="custom-input">
-            <ion-input-password-toggle color="medium" slot="end"></ion-input-password-toggle>
+          <ion-input label="Password" label-placement="floating" type="password"
+            v-model="store.SetPasswordData.Password" @ionInput="validatePassword" class="custom-input">
+            <ion-input-password-toggle color="medium" slot="end" v-if="this.store.SetPasswordData.Password"></ion-input-password-toggle>
           </ion-input>
         </ion-item>
 
         <ion-item lines="none" class="input-container">
-          <ion-input 
-            @ionInput="validatePasswordConfirm"
-            type="password" placeholder="Confirm password" v-model="store.SetPasswordData.PasswordConfirm"
-            class="custom-input">
-            <ion-input-password-toggle color="medium" slot="end"></ion-input-password-toggle>
+          <ion-input label="Password Confirm" label-placement="floating" @ionInput="validatePasswordConfirm"
+            type="password" v-model="store.SetPasswordData.PasswordConfirm" class="custom-input">
+            <ion-input-password-toggle color="medium" slot="end" v-if="this.store.SetPasswordData.PasswordConfirm"></ion-input-password-toggle>
           </ion-input>
         </ion-item>
 
@@ -33,14 +35,14 @@
             :class="{ 'requirement-valid': data.isValid, 'requirement-invalid-text': !data.isValid }">
 
             <ion-icon :icon="data.isValid ? checkmarkOutline : closeOutline"
-            :class="data.isValid ? 'ion-icon-requirement-valid' : 'ion-icon-requirement-error'"></ion-icon>
+              :class="data.isValid ? 'ion-icon-requirement-valid' : 'ion-icon-requirement-error'"></ion-icon>
 
             {{ data.label }}
           </p>
         </div>
 
         <ion-button :disabled="!isFormValid" expand="block" shape="round"
-          :class="isFormValid ? 'continue-button-active' : 'continue-button'" v-on:click="this.SetPasswordComplete()">
+          :class="isFormValid ? 'continue-button' : 'continue-button-disabled'" v-on:click="this.SetPasswordComplete()">
           Complete
         </ion-button>
       </div>
@@ -49,6 +51,7 @@
 </template>
 
 <script>
+import BackButton from '@/components/BackButton.vue';
 import { checkmarkOutline, closeOutline } from 'ionicons/icons';
 import SetPasswordLogo from '../Images/SetPasswordPageLogo.png';
 import { UseStore } from '../stores/store';
@@ -57,7 +60,6 @@ import axios from 'axios';
 import {
   IonPage,
   IonContent,
-  IonImg,
   IonItem,
   IonInput,
   IonButton,
@@ -70,12 +72,12 @@ export default defineComponent({
   components: {
     IonPage,
     IonContent,
-    IonImg,
     IonItem,
     IonInput,
     IonButton,
     IonIcon,
-    IonInputPasswordToggle
+    IonInputPasswordToggle,
+    BackButton
   },
   setup() {
     const store = UseStore();
@@ -121,24 +123,24 @@ export default defineComponent({
     checkUppercase(password) { return /[A-Z]/.test(password); },
     checkLowercase(password) { return /[a-z]/.test(password); },
     checkNumber(password) { return /\d/.test(password); },
-    checkPasswords(password){
+    checkPasswords(password) {
       var passwordConfirm = this.store.SetPasswordData.PasswordConfirm || '';
-      if( password !== '' && passwordConfirm !== '' && password === passwordConfirm) return true;
+      if (password !== '' && passwordConfirm !== '' && password === passwordConfirm) return true;
       return false;
     },
-    validatePasswordConfirm(){
+    validatePasswordConfirm() {
       var Password = this.store.SetPasswordData.Password || '';
       var PasswordConfirm = this.store.SetPasswordData.PasswordConfirm || '';
       var IsPasswordConfirmValid = false;
-      if(Password === PasswordConfirm ) IsPasswordConfirmValid = true;
+      if (Password === PasswordConfirm) IsPasswordConfirmValid = true;
       console.log("IsPasswordConfirmValid : ", IsPasswordConfirmValid);
-      var findedRegexOption = this.PasswordRegexOptions.find(function(item){ return item.id === 5});
+      var findedRegexOption = this.PasswordRegexOptions.find(function (item) { return item.id === 5 });
 
-      if( IsPasswordConfirmValid ) {
-        if( findedRegexOption ) findedRegexOption.isValid = true;
+      if (IsPasswordConfirmValid) {
+        if (findedRegexOption) findedRegexOption.isValid = true;
       }
-      else{
-        if( findedRegexOption ) findedRegexOption.isValid = false;
+      else {
+        if (findedRegexOption) findedRegexOption.isValid = false;
       }
     },
     validatePassword() {
@@ -206,12 +208,6 @@ export default defineComponent({
   box-sizing: border-box;
 }
 
-.lock-icon {
-  width: 100px;
-  height: auto;
-  margin-bottom: 30px;
-}
-
 .title {
   font-size: 1.6em;
   font-weight: bold;
@@ -239,11 +235,13 @@ export default defineComponent({
   width: 100%;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
   --border-style: solid;
+
 }
 
 .custom-input {
   --placeholder-color: #999;
   --placeholder-opacity: 1;
+  --highlight-color-focused: #000000;
 }
 
 .requirements-list {
@@ -287,35 +285,9 @@ export default defineComponent({
   font-size: 15px;
 }
 
-.continue-button {
-  --background: #cccccc;
-  --background-activated: #b0b0b0;
-  --color: #666666;
-  --border-radius: 25px;
-  height: 50px;
-  font-weight: bold;
-  text-transform: none;
-  width: 100%;
-  margin-top: 10px;
-  box-shadow: none;
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-.continue-button-active {
-  --background: #e4002b;
-  --color: #fff;
-  --border-radius: 25px;
-  height: 50px;
-  font-weight: bold;
-  text-transform: none;
-  width: 100%;
-  margin-top: 10px;
-  box-shadow: none;
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-
 ion-toolbar {
   --background: transparent;
   --border-width: 0;
 }
+
 </style>

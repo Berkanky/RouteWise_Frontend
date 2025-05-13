@@ -1,7 +1,8 @@
 <template>
     <ion-page class="signup-page">
-        <ion-content fullscreen>
-            <!-- Logo -->
+        <ion-content fullscreen color="light">
+            <BackButton/>
+
             <div class="logo-wrapper">
                 <img src="../Images/RouteWise-3D-İcon.png" alt="Routewise Logo" class="logo" />
             </div>
@@ -16,32 +17,37 @@
             <form @submit.prevent="onSubmit" class="form">
                 
                 <ion-item class="input-container" lines="none">
-                    <!-- <ion-label position="stacked" class="inputLabels">Email Address</ion-label> -->
-                    <ion-input class="custom-input" v-model="this.store.RegisterData.EMailAddress" type="email"
-                        placeholder="username@example.com" required disabled></ion-input>
+                    <ion-input 
+                        label="Email" label-placement="floating"
+                        class="custom-input" v-model="this.store.RegisterData.EMailAddress" type="email"
+                        required disabled></ion-input>
                 </ion-item>
 
                 <ion-item class="input-container" lines="none">
-                    <!-- <ion-label position="stacked" class="inputLabels">Password</ion-label> -->
-                    <ion-input :disabled="this.IsRegisterCompleted" class="custom-input"
-                        v-model="this.store.RegisterData.Password" type="password" placeholder="Password." minlength="6"
+                    <ion-input 
+                        label="Password" label-placement="floating"
+                        :disabled="this.IsRegisterCompleted" class="custom-input"
+                        v-model="this.store.RegisterData.Password" type="password"
                         required>
-                        <ion-input-password-toggle color="danger" slot="end"></ion-input-password-toggle>
+                        <ion-input-password-toggle color="medium" slot="end" v-if="this.store.RegisterData.Password"></ion-input-password-toggle>
                     </ion-input>
                 </ion-item>
 
                 <RequirementContainerVue
+                    v-if="this.store.RegisterData.Password && !this.store.PasswordRegex(this.store.RegisterData.Password) "
                     Type="RegisterComplete"
                     RequirementType="Password"
                     :IsValid="this.store.PasswordRegex(this.store.RegisterData.Password)"
                 />
 
                 <ion-item class="input-container" lines="none">
-                    <!-- <ion-label position="stacked" class="inputLabels">Confirm Password</ion-label> -->
-                    <ion-input :disabled="this.IsRegisterCompleted" class="custom-input"
+
+                    <ion-input 
+                        label="Password Confirm" label-placement="floating"
+                        :disabled="this.IsRegisterCompleted" class="custom-input"
                         v-model="this.store.RegisterData.PasswordConfirm" type="password"
-                        placeholder="Password Confirm." minlength="6" required>
-                        <ion-input-password-toggle color="danger" slot="end"></ion-input-password-toggle>
+                        required>
+                        <ion-input-password-toggle color="medium" slot="end" v-if="this.store.RegisterData.PasswordConfirm"></ion-input-password-toggle>
                     </ion-input>
                 </ion-item>
 
@@ -53,10 +59,10 @@
 
                 <div>
                     <ion-item v-if="this.PhoneNumberVerifyActive" class="input-container" lines="none" style="margin-top:16px;">
-                        <ion-input 
-                            
+                        <ion-input
+                            label="Digit Code" label-placement="floating"
                             v-model="this.VerificationId" type="tel" inputmode="numeric" maxlength="6"
-                            placeholder="Enter digit code." class="custom-input" />
+                            class="custom-input" />
                     </ion-item>
                     <PhoneNumberInput Type="Register" v-if="!this.PhoneNumberVerifyActive && !this.PhoneNumberVerified"/>
 
@@ -79,19 +85,21 @@
                     <div class="button-container" v-if="!this.PhoneNumberVerified">
 
                         <ion-button 
+                            :class="!this.store.PhoneNumberRegex(this.store.RegisterData.DialCode, this.store.RegisterData.PhoneNumber) ? 'continue-button-disabled' : 'continue-button'"
                             v-if="!this.PhoneNumberVerifyActive"
                             v-on:click="this.SendSMSVerification();"
                             :disabled="!this.store.PhoneNumberRegex(this.store.RegisterData.DialCode, this.store.RegisterData.PhoneNumber)" 
-                            :color="this.store.PhoneNumberRegex(this.store.RegisterData.DialCode, this.store.RegisterData.PhoneNumber) ? 'danger' : 'light'" 
-                            style="margin-right: 10px;width:100%;">Verify</ion-button>
+                            style="width:100%;">Verify</ion-button>
                         
                             <ion-button 
+                            :class="!this.store.isValid(this.VerificationId) ? 'continue-button-disabled' : 'continue-button'"
                             :disabled="!this.store.isValid(this.VerificationId)"
                             v-if="this.PhoneNumberVerifyActive"
                             v-on:click="this.confirmPhoneNumber()"
-                            color="danger" style="width:100%;">Confirm</ion-button>
+                            style="width:100%;">Confirm</ion-button>
                         
                         <ion-button 
+                            class="continue-button"
                             v-if="this.PhoneNumberVerifyActive"
                             v-on:click="this.cancelPhoneVerification()"
                             color="danger" style="width:100%;">Cancel</ion-button>
@@ -100,23 +108,26 @@
 
                 <ion-item class="input-container" lines="none">
                     <!-- <ion-label position="stacked" class="inputLabels">Name</ion-label> -->
-                    <ion-input class="custom-input" :disabled="this.IsRegisterCompleted"
-                        v-model="this.store.RegisterData.Name" type="text" placeholder="First Name" minlength="6"
+                    <ion-input 
+                        label="Name" label-placement="floating"
+                        class="custom-input" :disabled="this.IsRegisterCompleted"
+                        v-model="this.store.RegisterData.Name" type="text"
                         required></ion-input>
                 </ion-item>
 
                 <ion-item class="input-container" lines="none">
                     <!-- <ion-label position="stacked" class="inputLabels">Surname</ion-label> -->
                     <ion-input 
-                        
+                        label="Surname" label-placement="floating"
                         class="custom-input" :disabled="this.IsRegisterCompleted"
-                        v-model="this.store.RegisterData.Surname" type="text" placeholder="Last Name" minlength="6"
+                        v-model="this.store.RegisterData.Surname" type="text"
                         required></ion-input>
                 </ion-item>
                 
-                <ion-button v-if="!this.IsRegisterCompleted" v-on:click="this.CompleteRegister()" type="submit"
-                    expand="block" :class="this.isValid() ? 'continue-button' : 'continue-button-disabled'"
-                    :disabled="!this.isValid()">
+                <ion-button
+                    v-if="!this.IsRegisterCompleted" v-on:click="this.CompleteRegister()" type="submit"
+                    expand="block" :class="this.isValid() && this.PhoneNumberVerified ? 'continue-button' : 'continue-button-disabled'"
+                    :disabled="!this.isValid() || !this.PhoneNumberVerified">
                     Complete
                 </ion-button>
             </form>
@@ -126,7 +137,7 @@
 
 <script>
 import { closeOutline, checkmarkOutline } from 'ionicons/icons';
-
+import BackButton from '@/components/BackButton.vue';
 import RequirementContainerVue from '@/components/RequirementContainer.vue';
 import PhoneNumberInput from '../components/PhoneNumberInput.vue';
 
@@ -135,7 +146,6 @@ import {
     IonPage,
     IonContent,
     IonItem,
-    IonLabel,
     IonInput,
     IonButton,
     IonInputPasswordToggle,
@@ -147,13 +157,13 @@ export default {
         IonPage,
         IonContent,
         IonItem,
-        IonLabel,
         IonInput,
         IonButton,
         IonInputPasswordToggle,
         RequirementContainerVue,
         PhoneNumberInput,
-        IonIcon
+        IonIcon,
+        BackButton
     },
     setup() {
         const store = UseStore();
@@ -182,16 +192,16 @@ export default {
             var EMailAddress = this.store.RegisterData.EMailAddress;
             var PhoneNumber = this.store.RegisterData.PhoneNumber;
             var DialCode = this.store.RegisterData.DialCode;
-            var Type = 'Register';
-            var VerificationCode = this.VerificationId;
+            var Type = 'RegisterComplete';
+            var VerificationId = this.VerificationId;
 
-            this.store.SMSVerify({EMailAddress: EMailAddress, PhoneNumber: PhoneNumber, DialCode: DialCode, Type: Type, VerificationCode: VerificationCode});
+            this.store.SMSVerify({EMailAddress: EMailAddress, PhoneNumber: PhoneNumber, DialCode: DialCode, Type: Type, VerificationId: VerificationId});
         },
         cancelPhoneVerification(){
             this.store.RegisterData.VerifySended = false;
         },
         SendSMSVerification(){
-            var Type = 'Register';
+            var Type = 'RegisterComplete';
             this.store.SMSVerificationSend(Type);
         },
         IsPasswordConfirmRegex() {
@@ -239,10 +249,10 @@ export default {
     watch:{
         'store.RegisterData':{
             handler(newVal){
-                if( 'VerifySended' in newVal && newVal["VerifySended"] === true) this.PhoneNumberVerifyActive = true;
+                if( 'PhoneNumberVerifySended' in newVal && newVal["PhoneNumberVerifySended"] === true) this.PhoneNumberVerifyActive = true;
                 else this.PhoneNumberVerifyActive = false;
 
-                if( 'Verified' in newVal && newVal['Verified'] === true ) this.PhoneNumberVerified = true;
+                if( 'PhoneNumberVerified' in newVal && newVal['PhoneNumberVerified'] === true ) this.PhoneNumberVerified = true;
                 else this.PhoneNumberVerified = false;
             },
             immediate: true, deep: true
@@ -276,6 +286,7 @@ export default {
 .custom-input {
     --placeholder-color: #999;
     --placeholder-opacity: 1;
+    --highlight-color-focused: #000000;
 }
 
 .PasswordWarningCard {
@@ -292,15 +303,6 @@ export default {
 
 .signup-page {
     --background: #ffffff;
-}
-
-.logo-wrapper {
-    text-align: center;
-}
-
-.logo {
-    width: 80px;
-    height: auto;
 }
 
 .title {
@@ -320,26 +322,6 @@ export default {
 
 .form {
     padding: 0 16px;
-}
-
-.continue-button {
-    --background: #e4002b;
-    --border-radius: 24px;
-    color: #fff;
-    margin-top: 16px;
-    font-size: 16px;
-    font-weight: 500;
-    text-transform: none;
-}
-
-.continue-button-disabled {
-    --background: var(--Deselect, #D1D1D1);
-    --border-radius: 24px;
-    color: Gray;
-    margin-top: 16px;
-    font-size: 16px;
-    font-weight: 500;
-    text-transform: none;
 }
 
 .requirements-list {

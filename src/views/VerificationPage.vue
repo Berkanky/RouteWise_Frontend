@@ -1,6 +1,7 @@
 <template>
     <ion-page class="otp-page-target">
-        <ion-content :fullscreen="true" class="ion-padding">
+        <ion-content :fullscreen="true" class="ion-padding" color="light">
+            <BackButton />
             <div class="logo-wrapper">
                 <img :src="ClockIcon" alt="Routewise Logo" class="logo" />
                 <p class="subtitle-target">The verification code will expire in:</p>
@@ -14,19 +15,24 @@
             </div>
 
             <ion-item class="input-container" lines="none" v-if="this.VerificationType == 'Email'">
-                <ion-input v-model="this.EMailAddress" type="email" placeholder="username@example.com" disabled required
+                <ion-input 
+                    label="Email" label-placement="floating"
+                    v-model="this.EMailAddress" type="email" disabled required
                     class="custom-input">
                 </ion-input>
             </ion-item>
             <ion-item class="input-container" lines="none" v-if="this.VerificationType == 'SMS'">
-                <ion-input class="custom-input"
+                <ion-input
+                    class="custom-input"
                     :placeholder="this.DialCode + this.PhoneNumber" type="tel"
                     disabled></ion-input>
             </ion-item>
 
             <ion-item class="input-container" lines="none" style="margin-top:16px;">
-                <ion-input v-model="this.VerificationId" type="tel" inputmode="numeric" maxlength="6"
-                    placeholder="Verification code" class="custom-input" />
+                <ion-input 
+                    label="Digit Code" label-placement="floating"
+                    v-model="this.VerificationId" type="tel" inputmode="numeric" maxlength="6"
+                    class="custom-input" />
             </ion-item>
 
             <div class="requirements-list">
@@ -34,14 +40,17 @@
                     <ion-icon :icon="closeOutline" style="margin-right:5px;color:red;font-size:15px;"></ion-icon>
                     The verification code has expired, please send the code again.
                 </p>
-                <p class="requirement-item requirement-error" v-if="!this.isValid()">
+                <p
+                    class="requirement-item requirement-error" v-if="!this.isValid() && this.VerificationId">
                     <ion-icon :icon="closeOutline" style="margin-right:5px;color:red;font-size:15px;"></ion-icon>
                     Please enter a valid code.
                 </p>
             </div>
 
             <div class="buttons-row-target" v-if="this.VerificationType == 'Email'">
-                <ion-button expand="block" class="next-btn-target" @click="this.ResendVerificationId()">
+                <ion-button 
+                    fill="outline"
+                    expand="block" class="resend-btn-target" @click="this.ResendVerificationId()">
                     Resend
                 </ion-button>
 
@@ -51,11 +60,14 @@
                 </ion-button>
             </div>
             <div class="buttons-row-target" v-if="this.VerificationType == 'SMS'">
-                <ion-button expand="block" class="next-btn-target" @click="this.ResendVerificationId()">
+                <ion-button 
+                    fill="outline"
+                    expand="block" class="resend-btn-target" @click="this.ResendVerificationId()">
                     Resend
                 </ion-button>
 
-                <ion-button expand="block" class="next-btn-target"
+                <ion-button
+                    expand="block" class="next-btn-target"
                     :disabled="!this.isValid() || !this.VerificationActive" @click="this.ConfirmVerificationId()">
                     Next
                 </ion-button>
@@ -67,6 +79,7 @@
 <script>
 import TimerPill from '@/components/TimerPill.vue';
 import ClockIcon from '../Images/ClockIcon.png';
+import BackButton from '@/components/BackButton.vue';
 import { defineComponent } from 'vue';
 import {
     IonPage,
@@ -90,6 +103,7 @@ export default defineComponent({
         IonInput,
         TimerPill,
         IonIcon,
+        BackButton
     },
     setup() {
         const store = UseStore();
@@ -193,9 +207,9 @@ export default defineComponent({
 
                     var PhoneNumber = this.PhoneNumber;
                     var DialCode = this.DialCode;
-                    var VerificationCode = this.VerificationId;
+                    var VerificationId = this.VerificationId;
                     
-                    this.store.SMSVerify({ EMailAddress: this.EMailAddress, Type: Type, PhoneNumber: PhoneNumber, DialCode: DialCode, VerificationCode: VerificationCode});
+                    this.store.SMSVerify({ EMailAddress: EMailAddress, Type: Type, PhoneNumber: PhoneNumber, DialCode: DialCode, VerificationId: VerificationId});
                 }
             }
         },
@@ -291,15 +305,7 @@ export default defineComponent({
 .custom-input {
     --placeholder-color: #999;
     --placeholder-opacity: 1;
-}
-
-.logo-wrapper {
-    text-align: center;
-}
-
-.logo {
-    width: 130px;
-    height: auto;
+    --highlight-color-focused: #000000;
 }
 
 .otp-page-target {
@@ -375,18 +381,16 @@ ion-toolbar {
 
 .buttons-row-target {
     display: flex;
-    gap: 12px;
-    padding: 0 16px;
     align-items: center;
 }
 
 .resend-btn-target {
-    flex: 0 0 110px;
+    flex: 1;
     --border-radius: 24px;
     --border-width: 1px;
     --border-color: #e4002b;
     --background: #ffffff;
-    --background-activated: #f0f0f0;
+    --background-focused: #ffffff;
     --color: #e4002b;
     --padding-top: 12px;
     --padding-bottom: 12px;
@@ -394,6 +398,7 @@ ion-toolbar {
     font-size: 16px;
     font-weight: 500;
     text-transform: none;
+    width:100%;
 }
 
 .next-btn-target {
@@ -409,10 +414,11 @@ ion-toolbar {
     font-size: 16px;
     font-weight: 500;
     text-transform: none;
+    width:100%;
 }
 
 .next-btn-target[disabled] {
-    --background: #fecdd3;
+    --background: #D1D1D1;
     opacity: 1;
 }
 

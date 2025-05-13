@@ -12,13 +12,18 @@
                 </ion-select-option>
             </ion-select>
             <ion-input class="custom-input" v-model="this.UserData.PhoneNumber" type="tel"
-                placeholder="Telefon numaranızı girin" required></ion-input>
+                placeholder="Please enter phone number." required></ion-input>
         </ion-item>
     </div>
 </template>
 
 <script>
-import { IonItem, IonInput, IonSelect, IonSelectOption } from '@ionic/vue';
+import { 
+    IonItem, 
+    IonInput, 
+    IonSelect, 
+    IonSelectOption,
+} from '@ionic/vue';
 import { UseStore } from '../stores/store';
 import axios from 'axios';
 export default {
@@ -42,7 +47,7 @@ export default {
     data: function () {
         return {
             Countries: [],
-            UserData: {}
+            UserData: {},
         }
     },
     created() {
@@ -105,7 +110,6 @@ export default {
     width: 100%;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
     --border-style: solid;
-    margin-bottom: 15px;
 }
 
 .custom-input {

@@ -57,7 +57,7 @@ export default {
         VerifySendedCount(newVal) {
             if (newVal != null) {
                 this.Reset();
-            }
+            }   
         }
     }
 };
@@ -66,13 +66,12 @@ export default {
 <style scoped>
 .timer-pill {
     display: inline-block;
-    padding: 0.5em 1.5em;
+    padding: 0.3em 1em;
     font-size: 1rem;
     font-weight: bold;
     color: #fff;
     background: linear-gradient(90deg, #ff4d4d, #e60000);
     border-radius: 999px;
-    min-width: 6em;
     text-align: center;
     font-family: sans-serif;
 }

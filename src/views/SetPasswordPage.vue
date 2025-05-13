@@ -1,6 +1,7 @@
 <template>
     <ion-page class="signup-page">
-        <ion-content fullscreen>
+        <ion-content fullscreen color="light">
+            <BackButton />
             <!-- Logo -->
             <div class="logo-wrapper">
                 <img src="../Images/RouteWise-3D-İcon.png" alt="Routewise Logo" class="logo" />
@@ -35,13 +36,15 @@
 
                 <ion-item class="input-container" lines="none">
                     <!-- <ion-label position="stacked" class="inputLabels">Email Address</ion-label> -->
-                    <ion-input 
+                    <ion-input
+                        label="Email" label-placement="floating"
                         class="custom-input"
                         v-model="this.store.SetPasswordData.EMailAddress" type="email"
-                        placeholder="Email" required></ion-input>
+                        required></ion-input>
                 </ion-item>
 
                 <RequirementContainerVue
+                    v-if="this.store.SetPasswordData.EMailAddress"
                     Type="setPassword"
                     RequirementType="EMailAddress"
                     :IsValid="this.store.EMailAddressRegex(this.store.SetPasswordData.EMailAddress)"
@@ -58,15 +61,16 @@
                 <ion-item class="input-container" lines="none">
                     <!-- <ion-label position="stacked" class="inputLabels">Email Address</ion-label> -->
                     <ion-input 
+                        label="Email" label-placement="floating"
                         class="custom-input"
                         v-model="this.store.SetPasswordData.EMailAddress" type="email"
-                        placeholder="Email" required
+                        required
                     >
                     </ion-input>
                 </ion-item>
 
                 <RequirementContainerVue
-                    v-if="!this.store.EMailAddressRegex(this.store.SetPasswordData.EMailAddress)"
+                    v-if="this.store.SetPasswordData.EMailAddress"
                     Type="setPassword"
                     RequirementType="EMailAddress"
                     :IsValid="this.store.EMailAddressRegex(this.store.SetPasswordData.EMailAddress)"
@@ -75,14 +79,15 @@
                 <PhoneNumberInput Type="setPassword"/>
 
                 <RequirementContainerVue
-                    v-if="!this.store.PhoneNumberRegex(this.store.SetPasswordData.DialCode, this.store.SetPasswordData.PhoneNumber)"
+                    v-if="this.store.SetPasswordData.DialCode && this.store.SetPasswordData.PhoneNumber"
                     Type="setPassword"
                     RequirementType="PhoneNumber"
                     :IsValid="this.store.PhoneNumberRegex(this.store.SetPasswordData.DialCode, this.store.SetPasswordData.PhoneNumber)"
                 />
 
                 <ion-button v-on:click="this.store.SMSVerificationSend(this.Type)" type="submit" expand="block"
-                    class="continue-button" :disabled="!this.store.PhoneNumberRegex(this.store.SetPasswordData.DialCode, this.store.SetPasswordData.PhoneNumber) || !this.store.EMailAddressRegex(this.store.SetPasswordData.EMailAddress)">
+                    :class="!this.store.PhoneNumberRegex(this.store.SetPasswordData.DialCode, this.store.SetPasswordData.PhoneNumber) || !this.store.EMailAddressRegex(this.store.SetPasswordData.EMailAddress) ? 'continue-button-disabled' : 'continue-button'"
+                    :disabled="!this.store.PhoneNumberRegex(this.store.SetPasswordData.DialCode, this.store.SetPasswordData.PhoneNumber) || !this.store.EMailAddressRegex(this.store.SetPasswordData.EMailAddress)">
                     Continue
                 </ion-button>
                 </form>
@@ -93,7 +98,7 @@
 <script>
 import RequirementContainerVue from '@/components/RequirementContainer.vue';
 import PhoneNumberInput from '@/components/PhoneNumberInput.vue';
-
+import BackButton from '@/components/BackButton.vue';
 import { UseStore } from '../stores/store';
 
 import { mailOutline, callOutline, mailUnreadOutline } from "ionicons/icons";
@@ -109,7 +114,8 @@ export default {
         IonInput,
         IonButton,
         RequirementContainerVue,
-        PhoneNumberInput
+        PhoneNumberInput,
+        BackButton
     },
     setup() {
         const store = UseStore();
@@ -177,6 +183,7 @@ export default {
 .custom-input {
   --placeholder-color: #999;
   --placeholder-opacity: 1;
+  --highlight-color-focused: #000000;
 }
 
 .inputLabels {
@@ -185,15 +192,6 @@ export default {
 
 .signup-page {
     --background: #ffffff;
-}
-
-.logo-wrapper {
-    text-align: center;
-}
-
-.logo {
-    width: 80px;
-    height: auto;
 }
 
 .title {
@@ -224,16 +222,6 @@ ion-input {
     --padding-start: 12px;
     --padding-end: 12px;
     --border-radius: 8px;
-}
-
-.continue-button {
-    --background: #e4002b;
-    --border-radius: 24px;
-    color: #fff;
-    margin-top: 16px;
-    font-size: 16px;
-    font-weight: 500;
-    text-transform: none;
 }
 
 .container {

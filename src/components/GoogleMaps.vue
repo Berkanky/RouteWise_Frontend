@@ -1,6 +1,5 @@
 <template>
-    <capacitor-google-map ref="mapRef" style="display: inline-block; width: 100%; height: 100%">
-    </capacitor-google-map>
+    <capacitor-google-map ref="mapRef" style="display: inline-block; width: 100%; height: 100%"></capacitor-google-map>
 </template>
 
 <script>
@@ -19,12 +18,16 @@ export default {
     data() {
         return {
             markerIds: [],
-            newMap: null
+            newMap: null,
+            clickMarkerId: null,
+            originLocationId: null,
+            currentRouteId: null,
+            CurrentLocation:{}
         };
     },
-    setup(){
+    setup() {
         const store = UseStore();
-        return{
+        return {
             store
         }
     },
@@ -35,70 +38,105 @@ export default {
     async beforeUnmount() {
         if (this.newMap) {
             try {
-                if (this.markerIds && this.markerIds.length > 0) {
-                    await this.newMap.removeMarkers(this.markerIds);
-                }
+                if (this.markerIds && this.markerIds.length > 0) await this.newMap.removeMarkers(this.markerIds);
                 await this.newMap.destroy();
                 this.newMap = null;
             } catch (error) {
-                // console.error("Harita temizlenirken hata oluştu:", error); // Yorumu kaldırdık
+                console.error("Harita temizlenirken hata oluştu:", error);
             }
         }
     },
     methods: {
-        async addSomeMarkers(currentMapInstance) {
-            if (!currentMapInstance) {
-                return;
-            }
-
-            if (this.markerIds && this.markerIds.length > 0) {
+        async AddMarkerToOriginLocation(lat, lng) {
+            if (this.originLocationId) {
                 try {
-                    await currentMapInstance.removeMarkers(this.markerIds);
-                    this.markerIds = [];
-                } catch (error) {
-                    // console.error("Mevcut marker'lar kaldırılırken hata:", error); // Yorumu kaldırdık
+                    await this.newMap.removeMarkers([this.originLocationId]);
+                    this.originLocationId = null;
+                } catch (err) {
+                    this.originLocationId = null;
                 }
             }
 
-            const markersToAdd = this.markerData.map(({ coordinate, title, snippet }) => ({
-                coordinate,
-                title,
-                snippet,
-            }));
+            try {
+                const markerResult = await this.newMap.addMarker({
+                    coordinate: {
+                        lat: lat,
+                        lng: lng
+                    },
+                    title: 'Origin location.',
+                });
 
-            if (markersToAdd.length > 0) {
-                try {
-                    this.markerIds = await currentMapInstance.addMarkers(markersToAdd);
-                } catch (error) {
-                    // console.error("Yeni marker'lar eklenirken hata:", error); // Yorumu kaldırdık
-                    this.markerIds = [];
+                var newMarkerId = null;
+                if (markerResult) newMarkerId = markerResult;
+
+                if (newMarkerId) {
+
+                    this.originLocationId = newMarkerId;
+                    console.log("originLocationId : ", this.originLocationId);
+                } else {
+                    console.warn("Marker eklendi ancak ID alınamadı.", markerResult);
                 }
-            } else {
-                this.markerIds = [];
+
+            } catch (error) {
+                console.error('Haritaya tıklama markeri eklenirken hata:', error);
+            }
+        },
+        async AddMarkerToClickedLocation(lat, lng) {
+            if (this.clickMarkerId) {
+                try {
+                    await this.newMap.removeMarkers([this.clickMarkerId]);
+                    this.clickMarkerId = null;
+                } catch (err) {
+
+                    console.error("Eski tıklama markeri silinirken hata:", err);
+                    this.clickMarkerId = null;
+                }
+            }
+
+            try {
+                const markerResult = await this.newMap.addMarker({
+                    coordinate: {
+                        lat: lat,
+                        lng: lng
+                    },
+                    title: 'Destination Location.',
+                });
+
+                var newMarkerId = null;
+                if (markerResult) newMarkerId = markerResult;
+
+                if (newMarkerId) {
+
+                    this.clickMarkerId = newMarkerId;
+                    console.log("clickMarkerId : ", this.clickMarkerId);
+                    this.store.DestinationLocation.latitude = lat;
+                    this.store.DestinationLocation.longitude = lng;
+                } else {
+                    console.warn("Marker eklendi ancak ID alınamadı.", markerResult);
+                }
+
+            } catch (error) {
+                console.error('Haritaya tıklama markeri eklenirken hata:', error);
             }
         },
         async createMap() {
-            if (!this.$refs.mapRef) {
-                return;
-            }
-            if (this.newMap) { // Harita zaten varsa tekrar oluşturma
-                return;
-            }
+            var latitude = this.store.CurrentLocation.latitude;
+            var longitude = this.store.CurrentLocation.longitude;
+            if (!this.$refs.mapRef) return
+            if (this.newMap) return
             try {
                 this.newMap = await GoogleMap.create({
                     id: "my-cool-map",
                     element: this.$refs.mapRef,
-                    apiKey: 'AIzaSyCM0jsiLje96wa8_A7M8LLutftfnkoSsqY', // API Anahtarınızı buraya girin
+                    apiKey: this.store.GoogleAPIKey,
                     config: {
                         center: {
-                            lat: 41.015137,
-                            lng: 28.979530,
+                            lat: latitude,
+                            lng: longitude,
                         },
-                        zoom: 1,
+                        zoom: 12,
                     },
                 });
-
-                await this.addSomeMarkers(this.newMap);
 
                 if (this.newMap && typeof this.newMap.setOnMarkerClickListener === 'function') {
                     this.newMap.setOnMarkerClickListener((event) => {
@@ -107,58 +145,29 @@ export default {
                 }
 
                 if (this.newMap && typeof this.newMap.setOnMapClickListener === 'function') {
-                    this.newMap.setOnMapClickListener(() => {
-                        this.$emit("onMapClicked");
+                    this.newMap.setOnMapClickListener((mapClickEvent) => {
+
+                        var latitude = mapClickEvent.latitude;
+                        var longitude = mapClickEvent.longitude;
+                        this.AddMarkerToClickedLocation(latitude, longitude);
+
+                        this.$emit("onMapClicked", { latitude, longitude });
                     });
                 }
             } catch (error) {
-                // console.error("Harita oluşturulurken hata:", error); // Yorumu kaldırdık
+                console.error("Harita oluşturulurken hata:", error); 
             }
         },
-        async destroyMapInstance() {
-            if (this.newMap) {
-                try {
-                    if (this.markerIds && this.markerIds.length > 0) {
-                        await this.newMap.removeMarkers(this.markerIds);
-                        this.markerIds = [];
-                    }
-                    await this.newMap.destroy();
-                    this.newMap = null;
-                } catch (error) {
-                    // console.error("destroyMapInstance hata:", error); // Yorumu kaldırdık
-                }
-            }
-        },
-        async createMapInstance() {
-            if (this.newMap) {
-                return;
-            }
-            if (!this.$refs.mapRef) {
-                await this.$nextTick();
-                if (!this.$refs.mapRef) {
-                    return;
-                }
-            }
-            await this.createMap();
-        },
-        async drawRouteOnMap(mapInstance, decodedCoordinates, optionalRouteId = 'current_route') {
-            if (!mapInstance || typeof mapInstance.addPolylines !== 'function') {
-                console.error("Harita nesnesi geçerli değil veya addPolylines metodunu desteklemiyor.");
-                return null;
-            }
-            if (!decodedCoordinates || decodedCoordinates.length < 2) {
-                console.error("Rota çizmek için yetersiz koordinat bilgisi.");
-                return null;
-            }
+        async drawRouteOnMap(mapInstance, decodedCoordinates, currentRouteId) {
 
-            console.log(`Haritaya ${decodedCoordinates.length} noktadan oluşan bir rota çiziliyor...`);
+            if (!mapInstance || typeof mapInstance.addPolylines !== 'function') return null;
+            if (!decodedCoordinates || decodedCoordinates.length < 2) return null;
 
             try {
                 try {
-                    await mapInstance.removePolylines([optionalRouteId]);
-                    console.log(`Varsa, önceki '${optionalRouteId}' rotası temizlendi.`);
+                    await mapInstance.removePolylines([currentRouteId]);
                 } catch (removeError) {
-                    console.warn(`'${optionalRouteId}' ID'li polyline temizlenirken hata veya bulunamadı:`, removeError);
+                    console.warn(`'${currentRouteId}' ID'li polyline temizlenirken hata veya bulunamadı:`, removeError);
                 }
                 const result = await mapInstance.addPolylines([
                     {
@@ -170,9 +179,9 @@ export default {
                         zIndex: 1,
                     }
                 ]);
-                const routeId = result[0];
-                console.log("result : ", result);
-                console.log(`Rota başarıyla çizildi. ID: ${routeId}`);
+                console.log("routeId : ", result);
+                var routeId = result[0];
+                this.currentRouteId = routeId;
                 return routeId;
 
             } catch (error) {
@@ -181,23 +190,27 @@ export default {
             }
         },
         async handleRouteResponse(decoded_overview_polyline_points) {
-            const decodedCoordinates = decoded_overview_polyline_points
-            const map = this.newMap;
 
-            if (map && decodedCoordinates) {
-                const drawnRouteId = await this.drawRouteOnMap(map, decodedCoordinates);
-                if (drawnRouteId) {
-                    //
-                }
-            }
+            var decodedCoordinates = decoded_overview_polyline_points
+            var map = this.newMap;
+
+            if (map && decodedCoordinates) await this.drawRouteOnMap(map, decodedCoordinates, this.currentRouteId);
         }
     },
     watch: {
         'store.CalculatedRoute': {
             handler(newVal) {
-                if (newVal) {
-                    console.log(" CalculatedRoute : ", newVal);
-                    this.handleRouteResponse(newVal.decoded_overview_polyline_points)
+                if (newVal && 'decoded_overview_polyline_points' in newVal) this.handleRouteResponse(newVal.decoded_overview_polyline_points);
+            },
+            immediate: true, deep: true
+        },
+        'store.CurrentLocation':{
+            handler(newVal){
+                if( newVal ) {
+
+                    this.CurrentLocation.latitude = newVal.latitude;
+                    this.CurrentLocation.longitude = newVal.longitude;
+                    this.AddMarkerToOriginLocation(this.CurrentLocation.latitude, this.CurrentLocation.longitude);
                 }
             },
             immediate: true, deep: true

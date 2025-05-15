@@ -52,6 +52,7 @@ export default {
     },
     created() {
         this.GetCountries();
+        this.UserData.DialCode = '+90';
     },
     methods: {
         HandleChangeSelectCountry(event) {
@@ -91,29 +92,10 @@ export default {
                         this.store.SetPasswordData.DialCode = newVal.DialCode;
                         this.store.SetPasswordData.PhoneNumber = newVal.PhoneNumber;
                     }
-                }
+                } 
             },
             immediate: true, deep: true
         }
     }
 }
 </script>
-
-<style scoped>
-.input-container {
-    --background: #ffffff;
-    --border-radius: 25px;
-    --border-color: #e0e0e0;
-    --border-width: 1px;
-    --padding-start: 15px;
-    --padding-end: 15px;
-    width: 100%;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-    --border-style: solid;
-}
-
-.custom-input {
-    --placeholder-color: #999;
-    --placeholder-opacity: 1;
-}
-</style>

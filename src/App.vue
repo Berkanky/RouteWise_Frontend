@@ -29,7 +29,6 @@
 </template>
 
 <script>
-import { Geolocation } from '@capacitor/geolocation';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Preferences } from '@capacitor/preferences';
 import { fadeAnimation } from './animation'; // Animasyon dosyasını import et
@@ -181,17 +180,13 @@ export default {
         console.log("WebSocket hatası: " + error.message);
       };
     },
-    async GetCurrentLocation(){
-      this.store.CurrentLocation = (await Geolocation.getCurrentPosition()).coords;
-      console.log("Current Location : ", JSON.stringify(this.store.CurrentLocation));
-    }
+    
   },
   created() {
 
     StatusBar.setBackgroundColor({ color: '#00000000' });
     StatusBar.setOverlaysWebView({ overlay: false });
     StatusBar.setStyle({ style: Style.Dark });
-    this.GetCurrentLocation();
   },
   mounted() {
     this.store.AppStarted = true;

@@ -1,8 +1,6 @@
 <template>
   <ion-page>
     <ion-content :fullscreen="true">
-      <!-- <my-map ref="googleMapInstance" :markerData="markerData" @onMapClicked="mapClicked"
-        @onMarkerClicked="markerClicked"></my-map> -->
       <Suspense>
         <template #default>
           <my-map ref="googleMapInstance" :markerData="markerData" @onMapClicked="mapClicked"
@@ -20,8 +18,9 @@
           <div>{{ markerInfo?.title }}</div>
         </ion-content>
       </ion-popover>
-      <ion-modal :is-open="isRideBookingModalOpen" @willPresent="handleModalWillPresent"
-        @didDismiss="handleModalDidDismiss" :initial-breakpoint="1" :breakpoints="[0, 0.5, 0.75, 1]"
+      <ion-modal 
+        @didDismiss="handleModalDidDismiss"
+        :is-open="isRideBookingModalOpen" :initial-breakpoint="1" :breakpoints="[0, 0.5, 0.75, 1]"
         backdrop-breakpoint="0.5">
         <ride-booking-component @closeModal="isRideBookingModalOpen = false"></ride-booking-component>
       </ion-modal>
@@ -38,7 +37,7 @@
 import {
   IonContent,
   IonPage,
-  IonPopover,
+  IonPopover, 
   modalController,
   IonIcon,
   IonModal,
@@ -104,6 +103,9 @@ export default {
           m.coordinate.lng === markerLocation.longitude
       );
     },
+    handleModalDidDismiss() {
+      this.isRideBookingModalOpen = false;
+    },
     markerClicked(markerEventPayload) {
       const markerDetails = this.getMarkerInfo(markerEventPayload);
       if (!markerDetails) {
@@ -118,18 +120,6 @@ export default {
         this.markerInfo = markerDetails;
         this.markerIsOpen = true;
       }
-    },
-    async handleModalWillPresent() {
-      if (this.$refs.googleMapInstance) {
-        //await this.$refs.googleMapInstance.destroyMapInstance();
-      }
-    },
-    async handleModalDidDismiss() {
-      this.isRideBookingModalOpen = false;
-      /* await this.$nextTick();
-      if (this.$refs.googleMapInstance) {
-        await this.$refs.googleMapInstance.createMapInstance();
-      }  */
     }
   }
 };

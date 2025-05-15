@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from '@ionic/vue-router';
 import { RouteRecordRaw } from 'vue-router';
-import authService from '../Services/authService';
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -93,20 +92,6 @@ const routes: Array<RouteRecordRaw> = [
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes
-})
-/* 
-router.beforeEach(async (to, from, next) => {
-
-  var isGoingToPublicPage = to.matched.some(record => record.meta.isPublic);
-
-  if (isGoingToPublicPage) return next();
-
-  if (!isGoingToPublicPage) {
-    var isAuthenticated = await authService();
-    if (isAuthenticated) return next();
-    return next({ name: 'login'});
-  } else return next();
 });
- */
 
 export default router

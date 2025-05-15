@@ -1,16 +1,15 @@
 <template>
   <ion-page>
-    <ion-content :fullscreen="true" class="secure-journey-content" color="light">
+    <ion-content :fullscreen="true" color="light">
       <BackButton />
+      <div class="logo-wrapper">
+        <img :src="SetPasswordLogo" alt="Lock Icon" class="logo" />
+      </div>
 
-      <div class="content-container">
-        <div class="logo-wrapper">
-          <img :src="SetPasswordLogo" alt="Lock Icon" class="logo" />
-        </div>
+      <h1 class="title">Secure your journey</h1>
+      <p class="subtitle">Reset your password and unlock smarter travel with Routewise.</p>
 
-        <h1 class="title">Secure your journey</h1>
-        <p class="subtitle">Reset your password and unlock smarter travel with Routewise.</p>
-
+      <form @submit.prevent="onSubmit" class="form">
         <ion-item class="input-container" lines="none">
           <ion-input label="Email" label-placement="floating" class="custom-input"
             v-model="this.store.SetPasswordData.EMailAddress" type="email" required disabled></ion-input>
@@ -19,14 +18,16 @@
         <ion-item lines="none" class="input-container">
           <ion-input label="Password" label-placement="floating" type="password"
             v-model="store.SetPasswordData.Password" @ionInput="validatePassword" class="custom-input">
-            <ion-input-password-toggle color="medium" slot="end" v-if="this.store.SetPasswordData.Password"></ion-input-password-toggle>
+            <ion-input-password-toggle color="medium" slot="end"
+              v-if="this.store.SetPasswordData.Password"></ion-input-password-toggle>
           </ion-input>
         </ion-item>
 
         <ion-item lines="none" class="input-container">
           <ion-input label="Password Confirm" label-placement="floating" @ionInput="validatePasswordConfirm"
             type="password" v-model="store.SetPasswordData.PasswordConfirm" class="custom-input">
-            <ion-input-password-toggle color="medium" slot="end" v-if="this.store.SetPasswordData.PasswordConfirm"></ion-input-password-toggle>
+            <ion-input-password-toggle color="medium" slot="end"
+              v-if="this.store.SetPasswordData.PasswordConfirm"></ion-input-password-toggle>
           </ion-input>
         </ion-item>
 
@@ -45,7 +46,7 @@
           :class="isFormValid ? 'continue-button' : 'continue-button-disabled'" v-on:click="this.SetPasswordComplete()">
           Complete
         </ion-button>
-      </div>
+      </form>
     </ion-content>
   </ion-page>
 </template>
@@ -193,57 +194,6 @@ export default defineComponent({
 </script>
 
 <style scoped>
-.secure-journey-content {
-  --background: #ffffff;
-}
-
-.content-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 20px;
-  padding-bottom: 20px;
-  padding-left: 27px;
-  padding-right: 27px;
-  box-sizing: border-box;
-}
-
-.title {
-  font-size: 1.6em;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 10px;
-  text-align: center;
-}
-
-.subtitle {
-  font-size: 0.9em;
-  color: #888;
-  margin-bottom: 40px;
-  text-align: center;
-  max-width: 250px;
-}
-
-.input-container {
-  --background: #ffffff;
-  --border-radius: 25px;
-  --border-color: #e0e0e0;
-  --border-width: 1px;
-  --padding-start: 15px;
-  --padding-end: 15px;
-  margin-bottom: 15px;
-  width: 100%;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-  --border-style: solid;
-
-}
-
-.custom-input {
-  --placeholder-color: #999;
-  --placeholder-opacity: 1;
-  --highlight-color-focused: #000000;
-}
-
 .requirements-list {
   width: 100%;
   padding-left: 15px;
@@ -284,10 +234,4 @@ export default defineComponent({
   color: red;
   font-size: 15px;
 }
-
-ion-toolbar {
-  --background: transparent;
-  --border-width: 0;
-}
-
 </style>

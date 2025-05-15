@@ -1,5 +1,5 @@
 <template>
-    <ion-page class="signup-page">
+    <ion-page >
         <ion-content fullscreen color="light">
             <BackButton />
             <!-- Logo -->
@@ -180,6 +180,7 @@ export default {
                 .then(res => {
                     console.log(res);
                     if (res.status === 200) {
+                        this.store.GoogleAPIKey = res.data.GoogleAPIKey;
                         this.store.UserData = res.data.UserData;
                         this.store.Token = res.data.Token;
                         if ('RefreshToken' in res.data && res.data.RefreshToken) {
@@ -238,77 +239,6 @@ export default {
 </script>
 
 <style scoped>
-.button-container {
-  display: flex;
-  justify-content: center; 
-  align-items: center;
-  height: 100%;
-  margin-bottom:15px;
-}
-
-.input-container {
-    --background: #ffffff;
-    --border-radius: 25px;
-    --border-color: #e0e0e0;
-    --border-width: 1px;
-    --padding-start: 15px;
-    --padding-end: 15px;
-    margin-bottom: 15px;
-    width: 100%;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-    --border-style: solid;
-}
-
-.custom-input {
-    --placeholder-color: #999;
-    --placeholder-opacity: 1;
-    --highlight-color-focused: #000000;
-}
-
-.signup-page {
-    --background: #ffffff;
-}
-
-.title {
-    text-align: center;
-    margin: 24px 16px 8px;
-    font-size: 24px;
-    font-weight: 600;
-    color: #000;
-}
-
-.subtitle {
-    text-align: center;
-    margin: 0 32px 24px;
-    font-size: 14px;
-    color: #666;
-}
-
-.form {
-    padding: 0 16px;
-}
-
-
-.email-verification-button {
-    --background: #e4002b;
-    --border-radius: 24px;
-    color: #fff;
-    font-size: 16px;
-    font-weight: 500;
-    text-transform: none;
-    width:100%;
-}
-
-.phone-verification-button {
-    --background: #e4002b;
-    --border-radius: 24px;
-    color: #fff;
-    font-size: 16px;
-    font-weight: 500;
-    text-transform: none;
-    width:100%;
-}
-
 .remember-item {
     border: none;
     --inner-padding-start: 4px;

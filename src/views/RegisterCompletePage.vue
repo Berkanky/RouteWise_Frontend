@@ -1,5 +1,5 @@
 <template>
-    <ion-page class="signup-page">
+    <ion-page>
         <ion-content fullscreen color="light">
             <BackButton/>
 
@@ -262,27 +262,6 @@ export default {
 </script>
 
 <style scoped>
-.button-container {
-  display: flex;
-  justify-content: center; 
-  align-items: center;
-  height: 100%;
-  margin-bottom:15px;
-}
-
-.input-container {
-    --background: #ffffff;
-    --border-radius: 25px;
-    --border-color: #e0e0e0;
-    --border-width: 1px;
-    --padding-start: 15px;
-    --padding-end: 15px;
-    margin-bottom: 15px;
-    width: 100%;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-    --border-style: solid;
-}
-
 .custom-input {
     --placeholder-color: #999;
     --placeholder-opacity: 1;
@@ -300,58 +279,4 @@ export default {
     border-radius: 30px;
     border: 1px solid #F00;
 }
-
-.signup-page {
-    --background: #ffffff;
-}
-
-.title {
-    text-align: center;
-    margin: 24px 16px 8px;
-    font-size: 24px;
-    font-weight: 600;
-    color: #000;
-}
-
-.subtitle {
-    text-align: center;
-    margin: 0 32px 24px;
-    font-size: 14px;
-    color: #666;
-}
-
-.form {
-    padding: 0 16px;
-}
-
-.requirements-list {
-    width: 100%;
-    padding-left: 15px;
-    margin-top: 5px;
-    margin-bottom: 30px;
-}
-
-.requirement-item {
-    font-size: 0.8em;
-    color: #888;
-    margin-top: 5px;
-    margin-bottom: 5px;
-    display: flex;
-    align-items: center;
-}
-
-.requirement-invalid-text {
-    color: #888;
-}
-.requirement-valid {
-    color: green;
-}
-
-
-.ion-icon-requirement-valid {
-    margin-right:5px;
-    color:green;
-    font-size:15px;
-}
-
 </style>

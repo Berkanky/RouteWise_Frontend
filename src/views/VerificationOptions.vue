@@ -126,10 +126,6 @@ export default defineComponent({
     text-align: center;
 }
 
-.container {
-    padding: 16px;
-}
-
 .description {
     color: gray;
     margin-bottom: 20px;

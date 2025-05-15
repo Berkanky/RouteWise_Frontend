@@ -289,59 +289,6 @@ export default defineComponent({
 </script>
 
 <style scoped>
-.input-container {
-    --background: #ffffff;
-    --border-radius: 25px;
-    --border-color: #e0e0e0;
-    --border-width: 1px;
-    --padding-start: 15px;
-    --padding-end: 15px;
-    margin-bottom: 15px;
-    width: 100%;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-    --border-style: solid;
-}
-
-.custom-input {
-    --placeholder-color: #999;
-    --placeholder-opacity: 1;
-    --highlight-color-focused: #000000;
-}
-
-.otp-page-target {
-    --background: #ffffff;
-}
-
-ion-toolbar {
-    --background: #ffffff;
-    --border-width: 0 !important;
-    box-shadow: none;
-    padding-top: env(safe-area-inset-top);
-    --min-height: 50px;
-}
-
-.back-button-custom {
-    --background: #e4002b;
-    --background-hover: #c00024;
-    --color: #ffffff;
-    width: 36px;
-    height: 36px;
-    --border-radius: 50% !important;
-    border-radius: 50% !important;
-    margin-left: 16px;
-    --padding-start: 0;
-    --padding-end: 0;
-    --padding-top: 0;
-    --padding-bottom: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.back-button-custom ion-icon {
-    font-size: 20px;
-}
-
 .text-section-target {
     text-align: center;
     margin-top: 40px;
@@ -359,24 +306,6 @@ ion-toolbar {
 .subtitle-target {
     font-size: 14px;
     color: #666;
-}
-
-.resend-text-section {
-    text-align: center;
-    margin-bottom: 30px;
-    padding: 0 16px;
-}
-
-.resend-text-section p {
-    font-size: 14px;
-    color: #666;
-    margin: 0;
-}
-
-.resend-link {
-    color: #e4002b;
-    font-weight: 500;
-    cursor: pointer;
 }
 
 .buttons-row-target {

@@ -2,6 +2,8 @@ import { defineStore } from "pinia";
 import axios from "axios";
 export const UseStore = defineStore("UseStore", {
   state: () => ({
+
+    GoogleAPIKey:'',
     DeviceId: "",
     UserData: {},
 
@@ -13,7 +15,7 @@ export const UseStore = defineStore("UseStore", {
     RegisterData: { VerifySended: false },
     SetPasswordData: {},
 
-    CurrentLocation:{},
+    CurrentLocation:{ latitude: 40.985496058, longitude: 29.035333192},
     DestinationLocation:{},
     CalculatedRoute:{},
 
@@ -237,6 +239,6 @@ export const UseStore = defineStore("UseStore", {
   },
   persist: {
     storage: sessionStorage,
-    paths: ["Token", "UserData", "DeviceId"],
+    paths: ["Token", "UserData", "DeviceId", "GoogleAPIKey"],
   },
 });

@@ -1,5 +1,5 @@
 <template>
-    <ion-page class="signup-page">
+    <ion-page>
         <ion-content fullscreen color="light">
             <BackButton />
             <!-- Logo -->
@@ -166,68 +166,6 @@ export default {
 </script>
 
 <style scoped>
-
-.input-container {
-    --background: #ffffff;
-    --border-radius: 25px;
-    --border-color: #e0e0e0;
-    --border-width: 1px;
-    --padding-start: 15px;
-    --padding-end: 15px;
-    margin-bottom: 15px;
-    width: 100%;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-    --border-style: solid;
-}
-
-.custom-input {
-  --placeholder-color: #999;
-  --placeholder-opacity: 1;
-  --highlight-color-focused: #000000;
-}
-
-.inputLabels {
-    font-weight: bold;
-}
-
-.signup-page {
-    --background: #ffffff;
-}
-
-.title {
-    text-align: center;
-    margin: 24px 16px 8px;
-    font-size: 24px;
-    font-weight: 600;
-    color: #000;
-}
-
-.subtitle {
-    text-align: center;
-    margin: 0 32px 0px;
-    font-size: 14px;
-    color: #666;
-}
-
-.form {
-    padding: 0 16px;
-}
-
-.input-item {
-    margin-bottom: 16px;
-    --background: transparent;
-}
-
-ion-input {
-    --padding-start: 12px;
-    --padding-end: 12px;
-    --border-radius: 8px;
-}
-
-.container {
-    padding: 16px;
-}
-
 .description {
     color: gray;
 }

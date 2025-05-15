@@ -10,33 +10,122 @@ ion-content {
   --background: transparent !important;
 }
 
-.logo-wrapper{
+.logo-wrapper {
   text-align: center;
 }
 
 .logo {
-    width: 80px;
-    height: auto;
+  width: 80px;
+  height: auto;
 }
 
 .continue-button {
-    --background: #e4002b;
-    --border-radius: 24px;
-    color: #fff;
-    margin-top: 16px;
-    font-size: 16px;
-    font-weight: 500;
-    text-transform: none;
-    width:100%;
+  --background: #e4002b;
+  --border-radius: 24px;
+  color: #fff;
+  margin-top: 16px;
+  font-size: 16px;
+  font-weight: 500;
+  text-transform: none;
+  width: 100%;
 }
 
 .continue-button-disabled {
-    --background: var(--Deselect, #D1D1D1);
-    --border-radius: 24px;
-    color: Gray;
-    margin-top: 16px;
-    font-size: 16px;
-    font-weight: 500;
-    text-transform: none;
-    width:100%;
+  --background: var(--Deselect, #d1d1d1);
+  --border-radius: 24px;
+  color: Gray;
+  margin-top: 16px;
+  font-size: 16px;
+  font-weight: 500;
+  text-transform: none;
+  width: 100%;
+}
+
+.input-container {
+  --background: #ffffff;
+  --border-radius: 25px;
+  --border-color: #e0e0e0;
+  --border-width: 1px;
+  --padding-start: 15px;
+  --padding-end: 15px;
+  margin-bottom: 15px;
+  width: 100%;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  --border-style: solid;
+}
+
+.custom-input {
+  --placeholder-color: #999;
+  --placeholder-opacity: 1;
+  --highlight-color-focused: #000000;
+}
+
+.title {
+  text-align: center;
+  margin: 24px 16px 8px;
+  font-size: 24px;
+  font-weight: 600;
+  color: #000;
+}
+
+.subtitle {
+  text-align: center;
+  margin: 0 32px 24px;
+  font-size: 14px;
+  color: #666;
+}
+
+.form {
+  padding: 0 16px;
+}
+
+.button-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  margin-bottom: 15px;
+}
+
+.requirements-list {
+  width: 100%;
+  padding-left: 15px;
+  margin-top: 5px;
+  margin-bottom: 30px;
+}
+
+.requirement-item {
+  font-size: 0.8em;
+  color: #888;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+}
+
+.requirement-invalid-text {
+  color: #888;
+}
+
+.requirement-valid {
+  color: green;
+}
+
+.ion-icon-requirement-valid {
+  margin-right: 5px;
+  color: green;
+  font-size: 15px;
+}
+
+.inputLabels {
+  font-weight: bold;
+}
+
+.container {
+  padding: 16px;
+}
+
+.requirement-error {
+  color: red;
+  font-weight: bold;
 }

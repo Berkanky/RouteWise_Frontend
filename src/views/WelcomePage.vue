@@ -47,13 +47,8 @@ export default {
       store
     }
   },
-  data:function(){
-    return{
-      //
-    }
-  },
   created(){
-    //this.store.ResetPiniaStore();
+    this.store.ResetPiniaStore();
   },
   mounted(){
     if( this.store.AppStarted && !this.store.DeviceId) this.GetDeviceId();
@@ -66,8 +61,7 @@ export default {
       this.$router.push({path:'/Register'});
     },
     async GetDeviceId(){
-      const idResult = await Device.getId();
-      var DeviceId = idResult.identifier;
+      var DeviceId = (await Device.getId()).identifier;
       this.store.DeviceId = DeviceId;
 
       this.CheckRefreshToken(DeviceId);
@@ -79,6 +73,7 @@ export default {
         .then( res => {
           console.log(res);
           if(res.status === 200){
+            this.store.GoogleAPIKey = res.data.GoogleAPIKey;
             this.store.Token = res.data.Token;
             this.store.UserData = res.data.Auth;
             this.$router.push({path:'/Home'});
@@ -108,10 +103,6 @@ export default {
 <style scoped>
 ion-content::part(scroll) {
   overflow: hidden; 
-}
-.welcome-content {
-  --background: #ffffff;
-  --padding-bottom: 150px;
 }
 
 .title {
@@ -211,11 +202,5 @@ ion-content::part(scroll) {
   margin-top: 20px;
   font-size: 14px;
   color: #888888;
-}
-
-.login-link a {
-  color: #e4002b;
-  font-weight: 700;
-  text-decoration: none;
 }
 </style>
